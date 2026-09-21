@@ -21,6 +21,7 @@ import seoRoutes from './routes/seo.routes.js';
  * ประกอบ Express app — ลำดับ middleware มีผลต่อความปลอดภัย จึงห้ามสลับตามใจ
  * helmet → cors → rateLimit → parser → requestId → logger → routes → 404 → error
  */
+export const app = express();
 export function createApp(): Express {
   const app = express();
 

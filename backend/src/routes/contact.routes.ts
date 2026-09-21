@@ -110,7 +110,7 @@ adminRouter.get(
       prisma.contactMessage.count({ where: { deletedAt: null, isRead: false } }),
     ]);
 
-    sendSuccess(res, { items, unread }, 200, buildMeta(q.page, q.limit, total));
+    sendSuccess(res, { items, unread }, 200,buildMeta(q.page ?? 1, q.limit ?? 10, total));
   }),
 );
 

@@ -53,7 +53,7 @@ router.get(
       prisma.auditLog.count({ where }),
     ]);
 
-    sendSuccess(res, items, 200, buildMeta(q.page, q.limit, total));
+    sendSuccess(res, items, 200,buildMeta(q.page ?? 1, q.limit ?? 10, total));
   }),
 );
 

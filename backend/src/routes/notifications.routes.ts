@@ -31,7 +31,7 @@ router.get(
       prisma.notification.count({ where: { userId: req.user!.id, isRead: false } }),
     ]);
 
-    sendSuccess(res, { items, unread }, 200, buildMeta(q.page, q.limit, total));
+    sendSuccess(res, { items, unread }, 200, buildMeta(q.page ?? 1, q.limit ?? 10, total));
   }),
 );
 

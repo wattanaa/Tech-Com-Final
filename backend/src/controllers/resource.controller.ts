@@ -22,14 +22,14 @@ export function createResourceController(service: ResourceService) {
     async listPublic(req: Request, res: Response) {
       const q = query(req);
       const { items, total } = await service.list(q, true);
-      sendSuccess(res, items, 200, buildMeta(q.page, q.limit, total));
+      sendSuccess(res, items, 200, buildMeta(q.page ?? 1, q.limit ?? 10, total));
     },
 
     /** GET /admin/:route — รายการสำหรับหลังบ้าน เห็นทุกสถานะ */
     async listAdmin(req: Request, res: Response) {
       const q = query(req);
       const { items, total } = await service.list(q, false);
-      sendSuccess(res, items, 200, buildMeta(q.page, q.limit, total));
+      sendSuccess(res, items, 200, buildMeta(q.page ?? 1, q.limit ?? 10, total));
     },
 
     /** GET /:route/:identifier — รายละเอียดสำหรับหน้าเว็บ พร้อมนับยอดเข้าชม */

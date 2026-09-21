@@ -1,23 +1,10 @@
-import session from 'express-session';
-import ConnectPgSimple from 'connect-pg-simple';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const PgSession = ConnectPgSimple(session);
+import { app } from './app.js';
 
-app.use(
-  session({
-    store: new PgSession({
-      conString: process.env.DATABASE_URL,
-      tableName: 'session', // หรือใช้ Session model ของ Prisma
-    }),
-    name: process.env.SESSION_NAME || 'tcom.sid',
-    secret: process.env.SESSION_SECRET || 'secret-key-fallback',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 24 * 60 * 60 * 1000, // 1 วัน
-    },
-  })
-);
+const PORT = process.env.PORT || 4000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server is running on port ${PORT}`);
+});

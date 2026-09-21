@@ -106,7 +106,7 @@ router.get(
       res,
       { items, folders: folders.map((f) => ({ name: f.folder, count: f._count })) },
       200,
-      buildMeta(q.page, q.limit, total),
+      buildMeta(q.page ?? 1, q.limit ?? 10, total),
     );
   }),
 );

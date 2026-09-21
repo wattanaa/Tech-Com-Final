@@ -46,3 +46,7 @@ export const getNewsList = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+// วางไว้นอกสุดของไฟล์ (ระดับเดียวกับ export ฟังก์ชันอื่นๆ)
+export const getNewsBySlug = async (_req: any, res: any) => {
+  res.json({ data: null });
+};

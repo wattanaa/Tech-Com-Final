@@ -1,6 +1,7 @@
-import type { ZodSchema } from 'zod';
-import type { SortOrder } from '../utils/pagination.js';
 import type { ListQuery } from '../utils/pagination.js';
+import type { ZodSchema } from 'zod';
+//import type { SortOrder } from '../utils/pagination.js';
+//import type { ListQuery } from '../utils/pagination.js';
 
 /**
  * นิยามของ 1 Entity — ใช้ประกอบเป็น service, controller และ route อัตโนมัติ
@@ -25,7 +26,10 @@ export interface ResourceConfig {
   searchFields: readonly string[];
   /** ฟิลด์ที่เรียงลำดับได้ด้วย ?sort= */
   sortFields: readonly string[];
-  defaultSort: SortOrder;
+// เปลี่ยนจาก:
+// defaultSort: SortOrder;
+// เป็น:
+  defaultSort: Record<string, 'asc' | 'desc'> | any;
 
   /** ข้อมูลที่ join มาด้วยตอนเรียกจากหน้าเว็บสาธารณะ */
   publicInclude?: Record<string, unknown>;
