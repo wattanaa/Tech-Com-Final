@@ -41,7 +41,7 @@ services:
       - key: SEED_ADMIN_NAME
         value: ผู้ดูแลระบบ
       - key: CORS_ORIGIN
-        value: "*"                   # ตั้ง * ไว้ก่อนชั่วคราวเพื่อให้รันผ่าน แล้วค่อยมาแก้เป็น URL frontend ทีหลัง
+        value: "*"                    # ตั้ง * ไว้ก่อนชั่วคราวเพื่อให้รันผ่าน แล้วค่อยมาแก้เป็น URL frontend ทีหลัง
 
   # ── Frontend (Static Site) ──
   - type: web

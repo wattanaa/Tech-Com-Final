@@ -43,7 +43,7 @@ export function createApp(): Express {
       origin(origin, callback) {
         if (!origin || env.corsOrigins.includes(origin)) return callback(null, true);
         callback(ApiError.forbidden('ไม่อนุญาตให้เรียกจากโดเมนนี้'));
-      },
+      }
       credentials: true,
     }),
   );
