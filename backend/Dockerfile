@@ -31,11 +31,15 @@ RUN apt-get update -y && apt-get install -y --no-install-recommends openssl \
   && rm -rf /var/lib/apt/lists/*
 
 # คัดลอกทุกอย่างที่จำเป็นจากขั้น build
-# (ไม่ prune dev dependency เพราะ entrypoint ต้องใช้ prisma CLI และ tsx ตอน migrate/seed)
+# (ไม่ prune dev dependency เพราะ entrypoint ต้องใช้ prisma CLI และ tsx ตอน migrate/seed —
+#  ด้วยเหตุผลเดียวกัน ต้องคัดลอก src/ มาด้วย เพราะ prisma/seeds/*.ts import จาก ../../src/... ตรง ๆ
+#  ให้ tsx รันจาก source จริงตอน seed ไม่ใช่จาก dist/ ที่ compile แล้ว)
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/src ./src
 COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/tsconfig.json ./tsconfig.json
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
 
 # โฟลเดอร์เก็บไฟล์อัปโหลดและ backup (จะถูก mount เป็น volume ตอนใช้งานจริง)
