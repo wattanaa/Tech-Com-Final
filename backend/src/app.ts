@@ -21,7 +21,6 @@ import seoRoutes from './routes/seo.routes.js';
  * ประกอบ Express app — ลำดับ middleware มีผลต่อความปลอดภัย จึงห้ามสลับตามใจ
  * helmet → cors → rateLimit → parser → requestId → logger → routes → 404 → error
  */
-export const app = express();
 export function createApp(): Express {
   const app = express();
 
@@ -43,7 +42,7 @@ export function createApp(): Express {
       origin(origin, callback) {
         if (!origin || env.corsOrigins.includes(origin)) return callback(null, true);
         callback(ApiError.forbidden('ไม่อนุญาตให้เรียกจากโดเมนนี้'));
-      }
+      },
       credentials: true,
     }),
   );

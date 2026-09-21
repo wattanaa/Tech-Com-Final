@@ -30,7 +30,7 @@ export async function getList<T>(url: string, params?: ListParams): Promise<Pagi
 // ── การตั้งค่าเว็บไซต์ · เมนู · หน้าแรก ──────────────────────
 export const getSettings = () => get<SiteSettings>('/settings');
 export const getNavigation = () => get<NavigationItem[]>('/navigation', { location: 'HEADER' });
-export const getHomepageSections = () => get<HomepageSection[]>('/homepage');
+export const getHomepageSections = () => get<HomepageSection[]>('/homepage/sections');
 
 // ── เนื้อหา (รายการ) ────────────────────────────────────────
 export const getNews = (p?: ListParams) => getList<News>('/news', p);

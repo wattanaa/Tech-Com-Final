@@ -1,78 +1,49 @@
-import { PrismaClient, RoleName, CategoryType, ContentStatus, TeacherType, ProgramLevel } from '@prisma/client';
-import bcrypt from 'bcrypt'; // หรือ argon2 ตามที่โปรเจกต์ใช้
+/**
+ * จุดเริ่มต้น Seed — เรียกใช้ผ่าน `npm run db:seed` (หรือ `prisma migrate reset` ที่เรียกอัตโนมัติ)
+ *
+ *   npx tsx prisma/seed.ts                ครบทุกอย่าง (แกนระบบ + ข้อมูลตัวอย่าง)
+ *   npx tsx prisma/seed.ts --core-only     เฉพาะแกนระบบ (บทบาท/สิทธิ์/ผู้ดูแล/เมนู/ตั้งค่า/SEO) ไม่มีข้อมูลตัวอย่าง
+ *
+ * ทุกฟังก์ชันย่อยเป็น idempotent — รันซ้ำได้เสมอโดยไม่สร้างข้อมูลซ้ำ
+ */
+import { PrismaClient } from '@prisma/client';
+import {
+  seedRolesAndPermissions,
+  seedAdminUser,
+  seedHomepageSections,
+  seedNavigation,
+  seedSiteSettings,
+  seedSeoSettings,
+} from './seeds/core.js';
+import { seedDemoData } from './seeds/demo.js';
 
 const prisma = new PrismaClient();
+const coreOnly = process.argv.includes('--core-only');
 
 async function main() {
   console.log('🌱 เริ่มต้นการ Seed ข้อมูล...');
 
-  // 1. สร้าง Roles เริ่มต้น
-  const superAdminRole = await prisma.role.upsert({
-    where: { name: RoleName.SUPER_ADMIN },
-    update: {},
-    create: {
-      name: RoleName.SUPER_ADMIN,
-      label: 'ผู้ดูแลระบบสูงสุด',
-      level: 1,
-      description: 'สิทธิ์สูงสุดในระบบ',
-    },
-  });
+  const roles = await seedRolesAndPermissions(prisma);
+  const superAdminRole = roles.get('SUPER_ADMIN');
+  if (!superAdminRole) throw new Error('ไม่พบบทบาท SUPER_ADMIN หลัง seed บทบาท');
 
-  await prisma.role.upsert({
-    where: { name: RoleName.ADMIN },
-    update: {},
-    create: {
-      name: RoleName.ADMIN,
-      label: 'ผู้ดูแลระบบ',
-      level: 2,
-    },
-  });
+  const admin = await seedAdminUser(prisma, superAdminRole.id);
+  await seedHomepageSections(prisma);
+  await seedNavigation(prisma);
+  await seedSiteSettings(prisma);
+  await seedSeoSettings(prisma);
 
-  // 2. สร้าง User เริ่มต้น (Admin)
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'Admin@123456';
-  const passwordHash = await bcrypt.hash(adminPassword, 10);
+  if (!coreOnly) {
+    if (!admin) {
+      console.warn(
+        '⚠ ข้ามข้อมูลตัวอย่าง — ไม่มีบัญชีผู้ดูแลให้เป็นผู้เขียน (ตั้ง SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD ใน .env ก่อน)',
+      );
+    } else {
+      await seedDemoData(prisma, admin.id);
+    }
+  }
 
-  const adminUser = await prisma.user.upsert({
-    where: { email: process.env.SEED_ADMIN_EMAIL || 'admin@tcom.rtc.ac.th' },
-    update: {},
-    create: {
-      email: process.env.SEED_ADMIN_EMAIL || 'admin@tcom.rtc.ac.th',
-      name: process.env.SEED_ADMIN_NAME || 'ผู้ดูแลระบบ',
-      passwordHash,
-      roleId: superAdminRole.id,
-      isActive: true,
-    },
-  });
-
-  // 3. หมวดหมู่ข่าว/กิจกรรมเริ่มต้น
-  const defaultCategory = await prisma.category.upsert({
-    where: { slug_type: { slug: 'general', type: CategoryType.NEWS } },
-    update: {},
-    create: {
-      name: 'ข่าวประชาสัมพันธ์ทั่วไป',
-      slug: 'general',
-      type: CategoryType.NEWS,
-      color: '#0284c7',
-    },
-  });
-
-  // 4. ข่าวตัวอย่าง
-  await prisma.news.upsert({
-    where: { slug: 'welcome-tcom' },
-    update: {},
-    create: {
-      title: 'ยินดีต้อนรับสู่เว็บไซต์แผนกวิชาเทคโนโลยีคอมพิวเตอร์',
-      slug: 'welcome-tcom',
-      excerpt: 'เปิดตัวเว็บไซต์ใหม่อย่างเป็นทางการสำหรับการเรียนการสอนและประชาสัมพันธ์',
-      content: '<p>เว็บไซต์แผนกวิชาเทคโนโลยีคอมพิวเตอร์ วิทยาลัยเทคนิคร้อยเอ็ด พร้อมให้บริการแล้ว</p>',
-      status: ContentStatus.PUBLISHED,
-      publishedAt: new Date(),
-      authorId: adminUser.id,
-      categoryId: defaultCategory.id,
-    },
-  });
-
-  console.log('✅ Seed ข้อมูลตัวอย่างเรียบร้อยแล้ว!');
+  console.log('✅ Seed ข้อมูลเรียบร้อยแล้ว!');
 }
 
 main()

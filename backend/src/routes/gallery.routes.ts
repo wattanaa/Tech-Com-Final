@@ -23,6 +23,22 @@ const imageSelect = {
   media: { select: { id: true, url: true, thumbnailUrl: true, alt: true, width: true, height: true } },
 } as const;
 
+/** GET /api/v1/gallery — อัลบั้มที่เผยแพร่แล้วทั้งหมดพร้อมภาพ สำหรับหน้าคลังภาพและ section คลังภาพหน้าแรก */
+publicRouter.get(
+  '/',
+  asyncHandler(async (_req, res) => {
+    const albums = await prisma.album.findMany({
+      where: { isPublished: true, deletedAt: null },
+      orderBy: { eventDate: 'desc' },
+      include: {
+        coverImage: { select: { id: true, url: true, thumbnailUrl: true, alt: true } },
+        images: { select: imageSelect, orderBy: { order: 'asc' } },
+      },
+    });
+    sendSuccess(res, albums);
+  }),
+);
+
 /** GET /api/v1/gallery/:slug — ภาพทั้งหมดในอัลบั้ม สำหรับหน้า Lightbox */
 publicRouter.get(
   '/:slug',

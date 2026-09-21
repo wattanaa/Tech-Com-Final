@@ -12,6 +12,28 @@ const userWithRole = {
   avatar: { select: { id: true, url: true, thumbnailUrl: true } },
 } as const;
 
+/**
+ * โหลดผู้ใช้จาก userId ใน session แล้วแปลงเป็น AuthUser — ใช้ทั้งตอน login
+ * และตอน rehydrate req.user ใน attachUser (ต้อง query ทุก request เพราะ
+ * permission/role อาจเปลี่ยนระหว่างที่ session ยังไม่หมดอายุ)
+ */
+export async function loadAuthUser(userId: string): Promise<AuthUser | null> {
+  const user = await prisma.user.findFirst({
+    where: { id: userId, deletedAt: null, isActive: true },
+    include: userWithRole,
+  });
+  if (!user) return null;
+
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    roleName: user.role.name,
+    roleLevel: user.role.level,
+    permissions: user.role.permissions.map((rp) => rp.permission.key),
+  };
+}
+
 /** ข้อความเดียวกันทั้งกรณีอีเมลผิดและรหัสผ่านผิด — ไม่บอกใบ้ว่าบัญชีไหนมีอยู่จริง */
 const INVALID_CREDENTIALS = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
 
