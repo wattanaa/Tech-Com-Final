@@ -61,3 +61,31 @@ export const pageTransition: Variants = {
   animate: { opacity: 1, y: 0, transition: transitions.smooth },
   exit: { opacity: 0, y: -8, transition: transitions.fast },
 };
+
+/** ฉากหลังของ modal/dialog — จาง-เข้ม เท่านั้น ไม่ขยับตำแหน่ง */
+export const modalBackdrop: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: transitions.fast },
+  exit: { opacity: 0, transition: transitions.fast },
+};
+
+/** กล่อง modal/dialog ตรงกลางจอ — ขยายเบา ๆ พร้อมจาง */
+export const modalPanel: Variants = {
+  hidden: { opacity: 0, scale: 0.96, y: 8 },
+  visible: { opacity: 1, scale: 1, y: 0, transition: transitions.smooth },
+  exit: { opacity: 0, scale: 0.97, y: 4, transition: transitions.fast },
+};
+
+/** toast แจ้งเตือน — เลื่อนขึ้นตอนโผล่ เลื่อนออกด้านข้างตอนปิด */
+export const toastSlide: Variants = {
+  hidden: { opacity: 0, y: 12, scale: 0.96 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: transitions.smooth },
+  exit: { opacity: 0, x: 40, transition: transitions.fast },
+};
+
+/** เมนูลอย/dropdown ขนาดเล็ก เช่น เมนูผู้ใช้, กล่องแจ้งเตือน */
+export const dropdownReveal: Variants = {
+  hidden: { opacity: 0, scale: 0.96, y: -4 },
+  visible: { opacity: 1, scale: 1, y: 0, transition: transitions.fast },
+  exit: { opacity: 0, scale: 0.96, y: -4, transition: { duration: 0.12 } },
+};

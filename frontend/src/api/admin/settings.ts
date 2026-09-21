@@ -27,7 +27,12 @@ export interface SeoInput {
 }
 
 export const listSettings = () => get<SiteSettingRow[]>('/admin/settings');
-export const updateSetting = <K extends keyof SiteSettings>(key: K, value: SiteSettings[K]) =>
+/**
+ * ค่าที่ "เขียน" กับ "อ่าน" ของ setting บางตัวรูปร่างต่างกัน (เช่น general.logoId
+ * ตอนบันทึก vs general.logo ที่ backend แนบกลับมาตอนอ่าน) จึงรับ value เป็น unknown
+ * แทนการผูกกับ SiteSettings[K] ตรง ๆ — backend เป็นคนตรวจ shape จริงอยู่แล้ว
+ */
+export const updateSetting = (key: keyof SiteSettings, value: unknown) =>
   put<SiteSettingRow>(`/admin/settings/${key}`, value);
 
 export const listSeoAll = () => get<SeoSettingRow[]>('/admin/settings/seo/all');

@@ -9,6 +9,7 @@ export function Footer() {
   const footer = settings.footer ?? {};
   const contact = settings.contact ?? {};
   const social = settings.social ?? {};
+  const logo = settings.general?.logo;
 
   const quickLinks = footer.quickLinks ?? [
     { label: 'หลักสูตร', href: '/programs' },
@@ -22,9 +23,13 @@ export function Footer() {
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div className="lg:col-span-2">
           <div className="flex items-center gap-2.5">
-            <span className="grid size-10 place-items-center rounded-sm bg-gradient-to-br from-brand-400 to-brand-700 text-white shadow-glow">
-              <Cpu className="size-5" aria-hidden />
-            </span>
+            {logo ? (
+              <img src={logo.thumbnailUrl ?? logo.url} alt={logo.alt ?? SITE_NAME} className="size-10 shrink-0 rounded-sm object-contain" />
+            ) : (
+              <span className="grid size-10 place-items-center rounded-sm bg-gradient-to-br from-brand-400 to-brand-700 text-white shadow-glow">
+                <Cpu className="size-5" aria-hidden />
+              </span>
+            )}
             <span className="leading-tight">
               <span className="block font-display text-sm font-bold">แผนกวิชา{SITE_NAME}</span>
               <span className="block text-xs text-ink-subtle">{COLLEGE_NAME}</span>

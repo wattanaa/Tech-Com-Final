@@ -10,19 +10,14 @@ const schema = z.object({
   siteName: z.string().trim().min(1, 'กรุณากรอกชื่อเว็บไซต์').max(200),
   collegeName: z.string().trim().min(1, 'กรุณากรอกชื่อวิทยาลัย').max(200),
   tagline: z.string().trim().max(300).optional().or(z.literal('')),
+  logoId: z.string().optional().or(z.literal('')),
 });
-
-const fields: ResourceFormField[] = [
-  { name: 'siteName', label: 'ชื่อเว็บไซต์', type: 'text', colSpan: 2 },
-  { name: 'collegeName', label: 'ชื่อวิทยาลัย', type: 'text', colSpan: 2 },
-  { name: 'tagline', label: 'คำขวัญ / แท็กไลน์', type: 'text', colSpan: 2 },
-];
 
 export function GeneralTab({ value }: { value: SiteSettings['general'] }) {
   const toast = useToast();
   const queryClient = useQueryClient();
   const mutation = useMutation({
-    mutationFn: (data: NonNullable<SiteSettings['general']>) => updateSetting('general', data),
+    mutationFn: (data: z.infer<typeof schema>) => updateSetting('general', data),
     onSuccess: () => {
       toast.success('บันทึกการตั้งค่าสำเร็จ');
       queryClient.invalidateQueries({ queryKey: ['settings'] });
@@ -30,6 +25,13 @@ export function GeneralTab({ value }: { value: SiteSettings['general'] }) {
     },
     onError: (err) => toast.error(err instanceof ApiClientError ? err.message : 'บันทึกไม่สำเร็จ'),
   });
+
+  const fields: ResourceFormField[] = [
+    { name: 'logoId', label: 'โลโก้เว็บไซต์', type: 'image', initialPreview: value?.logo, colSpan: 2 },
+    { name: 'siteName', label: 'ชื่อเว็บไซต์', type: 'text', colSpan: 2 },
+    { name: 'collegeName', label: 'ชื่อวิทยาลัย', type: 'text', colSpan: 2 },
+    { name: 'tagline', label: 'คำขวัญ / แท็กไลน์', type: 'text', colSpan: 2 },
+  ];
 
   return (
     <ResourceForm
@@ -39,6 +41,7 @@ export function GeneralTab({ value }: { value: SiteSettings['general'] }) {
         siteName: value?.siteName ?? '',
         collegeName: value?.collegeName ?? '',
         tagline: value?.tagline ?? '',
+        logoId: value?.logo?.id ?? '',
       }}
       onSubmit={async (v) => {
         await mutation.mutateAsync(v);

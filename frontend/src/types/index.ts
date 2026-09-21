@@ -171,7 +171,7 @@ export interface NavigationItem {
 }
 
 export interface SiteSettings {
-  general?: { siteName?: string; collegeName?: string; tagline?: string };
+  general?: { siteName?: string; collegeName?: string; tagline?: string; logo?: Media | null };
   about?: {
     history?: string;
     vision?: string;

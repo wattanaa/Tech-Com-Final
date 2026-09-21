@@ -95,6 +95,7 @@ export const settingSchemas = {
     siteName: thaiText('ชื่อเว็บไซต์', 1, 200),
     collegeName: thaiText('ชื่อวิทยาลัย', 1, 200),
     tagline: optionalText(300),
+    logoId: cuid.nullish(),
   }),
   about: z.object({
     history: thaiText('ประวัติแผนก', 10, 10_000),

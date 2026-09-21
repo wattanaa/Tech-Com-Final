@@ -14,6 +14,23 @@ const publicRouter = Router();
 const adminRouter = Router();
 
 /**
+ * ค่า general.logoId เก็บแค่ id เพราะ site_settings.value เป็น JSON ธรรมดา ไม่ใช่ FK
+ * จริง ๆ — แนบข้อมูลรูปเต็ม (url/thumbnailUrl) ให้ตอนอ่านออกเท่านั้น ไม่บันทึกกลับ
+ */
+async function withResolvedLogo(value: unknown): Promise<unknown> {
+  if (!value || typeof value !== 'object') return value;
+  const general = value as Record<string, unknown>;
+  const logoId = general.logoId;
+  if (typeof logoId !== 'string') return value;
+
+  const media = await prisma.media.findUnique({
+    where: { id: logoId },
+    select: { id: true, url: true, thumbnailUrl: true, alt: true },
+  });
+  return { ...general, logo: media ?? null };
+}
+
+/**
  * GET /api/v1/settings
  * คืนค่าตั้งทั้งหมดในรูป { general: {...}, contact: {...}, ... }
  * หน้าเว็บเรียกครั้งเดียวตอนโหลดแล้วใช้ได้ทั้งเว็บไซต์
@@ -24,6 +41,7 @@ publicRouter.get(
     const rows = await prisma.siteSetting.findMany();
     const result: Record<string, unknown> = {};
     for (const row of rows) result[row.key] = row.value;
+    if (result.general) result.general = await withResolvedLogo(result.general);
     sendSuccess(res, result);
   }),
 );
@@ -47,7 +65,11 @@ adminRouter.get(
   '/',
   requirePermission('homepage:read'),
   asyncHandler(async (_req, res) => {
-    sendSuccess(res, await prisma.siteSetting.findMany({ orderBy: { key: 'asc' } }));
+    const rows = await prisma.siteSetting.findMany({ orderBy: { key: 'asc' } });
+    const resolved = await Promise.all(
+      rows.map(async (row) => (row.key === 'general' ? { ...row, value: await withResolvedLogo(row.value) } : row)),
+    );
+    sendSuccess(res, resolved);
   }),
 );
 

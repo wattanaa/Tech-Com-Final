@@ -1,12 +1,17 @@
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'motion/react';
 import { Sidebar } from '@/components/admin/Sidebar';
 import { Topbar } from '@/components/admin/Topbar';
+import { Spinner } from '@/components/ui/feedback';
+import { pageTransition } from '@/animations/variants';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 /** โครงหน้าหลังบ้านหลัง login แล้ว — sidebar (desktop คงที่ / mobile เป็น drawer) + topbar + เนื้อหา */
 export function AdminLayout() {
   const { pathname } = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const reduced = useReducedMotion();
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
@@ -41,7 +46,19 @@ export function AdminLayout() {
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar onMenuClick={() => setMobileOpen((v) => !v)} />
         <main id="admin-main" className="flex-1 p-4 sm:p-6 lg:p-8">
-          <Outlet />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={pathname}
+              variants={reduced ? undefined : pageTransition}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+            >
+              <Suspense fallback={<div className="py-16"><Spinner /></div>}>
+                <Outlet />
+              </Suspense>
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
     </div>

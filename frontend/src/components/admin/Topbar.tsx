@@ -1,16 +1,20 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'motion/react';
 import { LogOut, Menu, User } from 'lucide-react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { NotificationBell } from './NotificationBell';
 import { useToast } from './Toast';
+import { dropdownReveal } from '@/animations/variants';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const { user, logout } = useAdminAuth();
   const toast = useToast();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const reduced = useReducedMotion();
 
   const handleLogout = async () => {
     try {
@@ -51,29 +55,35 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
             </span>
           </button>
 
-          {menuOpen && (
-            <>
-              <button
-                className="fixed inset-0 z-10 cursor-default"
-                aria-hidden
-                tabIndex={-1}
-                onClick={() => setMenuOpen(false)}
-              />
-              <div
-                role="menu"
-                className="absolute right-0 top-full z-20 mt-2 w-44 overflow-hidden rounded-sm border border-hairline/15 bg-surface shadow-float"
-              >
+          <AnimatePresence>
+            {menuOpen && (
+              <>
                 <button
-                  role="menuitem"
-                  onClick={handleLogout}
-                  className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-ink-muted hover:bg-danger/[0.08] hover:text-danger"
+                  className="fixed inset-0 z-10 cursor-default"
+                  aria-hidden
+                  tabIndex={-1}
+                  onClick={() => setMenuOpen(false)}
+                />
+                <motion.div
+                  role="menu"
+                  variants={reduced ? undefined : dropdownReveal}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="absolute right-0 top-full z-20 mt-2 w-44 overflow-hidden rounded-sm border border-hairline/15 bg-surface shadow-float"
                 >
-                  <LogOut className="size-4" aria-hidden />
-                  ออกจากระบบ
-                </button>
-              </div>
-            </>
-          )}
+                  <button
+                    role="menuitem"
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-ink-muted hover:bg-danger/[0.08] hover:text-danger"
+                  >
+                    <LogOut className="size-4" aria-hidden />
+                    ออกจากระบบ
+                  </button>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </header>

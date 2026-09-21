@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { Cpu, Menu, Search, X } from 'lucide-react';
-import { useNavigation } from '@/hooks/useSiteData';
+import { useNavigation, useSettings } from '@/hooks/useSiteData';
 import { COLLEGE_NAME, SITE_NAME } from '@/constants/site';
 import { ThemeToggle } from './ThemeToggle';
 import { cn } from '@/utils/cn';
@@ -10,6 +10,8 @@ import { cn } from '@/utils/cn';
 /** แถบนำทางบนสุด — sticky + glassmorphism, เมนูบนจอใหญ่ / drawer บนมือถือ */
 export function Navbar() {
   const nav = useNavigation();
+  const settings = useSettings();
+  const logo = settings.general?.logo;
   const location = useLocation();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -39,9 +41,17 @@ export function Navbar() {
         )}
       >
         <Link to="/" className="flex shrink-0 items-center gap-2.5">
-          <span className="grid size-9 place-items-center rounded-sm bg-gradient-to-br from-brand-400 to-brand-700 text-white shadow-glow">
-            <Cpu className="size-[18px]" aria-hidden />
-          </span>
+          {logo ? (
+            <img
+              src={logo.thumbnailUrl ?? logo.url}
+              alt={logo.alt ?? SITE_NAME}
+              className="size-9 shrink-0 rounded-sm object-contain"
+            />
+          ) : (
+            <span className="grid size-9 place-items-center rounded-sm bg-gradient-to-br from-brand-400 to-brand-700 text-white shadow-glow">
+              <Cpu className="size-[18px]" aria-hidden />
+            </span>
+          )}
           <span className="leading-tight">
             <span className="block font-display text-[13px] font-bold">{SITE_NAME}</span>
             <span className="block text-[10.5px] text-ink-subtle">{COLLEGE_NAME}</span>

@@ -9,8 +9,10 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/feedback';
 import { useToast } from '@/components/admin/Toast';
 import { useConfirm } from '@/components/admin/ConfirmDialog';
+import { ImageCropModal } from '@/components/admin/ImageCropModal';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
+import { useCropUploadQueue } from '@/hooks/admin/useCropUploadQueue';
 import { listMedia, removeMedia, uploadMedia } from '@/api/admin/media';
 import { ApiClientError } from '@/api/client';
 
@@ -55,6 +57,8 @@ export function MediaLibraryPage() {
     onError: (err) => toast.error(err instanceof ApiClientError ? err.message : 'อัปโหลดไม่สำเร็จ'),
   });
 
+  const cropQueue = useCropUploadQueue((readyFiles) => uploadMutation.mutate(readyFiles));
+
   const removeMutation = useMutation({
     mutationFn: (id: string) => removeMedia(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'media'] }),
@@ -91,7 +95,7 @@ export function MediaLibraryPage() {
               hidden
               onChange={(e) => {
                 const files = Array.from(e.target.files ?? []);
-                if (files.length > 0) uploadMutation.mutate(files);
+                if (files.length > 0) cropQueue.start(files);
                 e.target.value = '';
               }}
             />
@@ -177,6 +181,13 @@ export function MediaLibraryPage() {
       )}
 
       {data?.meta && <Pagination page={data.meta.page} totalPages={data.meta.totalPages} onChange={setPage} />}
+
+      <ImageCropModal
+        file={cropQueue.currentFile}
+        open={!!cropQueue.currentFile}
+        onCancel={cropQueue.skipCurrent}
+        onConfirm={cropQueue.confirmCurrent}
+      />
     </div>
   );
 }

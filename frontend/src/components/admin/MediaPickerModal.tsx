@@ -1,14 +1,17 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type MouseEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { UploadCloud } from 'lucide-react';
+import { Trash2, UploadCloud } from 'lucide-react';
 import { Modal } from './Modal';
 import { useToast } from './Toast';
+import { useConfirm } from './ConfirmDialog';
+import { ImageCropModal } from './ImageCropModal';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { Pagination } from '@/components/ui/Pagination';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/feedback';
 import { useDebounce } from '@/hooks/useDebounce';
-import { listMedia, uploadMedia } from '@/api/admin/media';
+import { useCropUploadQueue } from '@/hooks/admin/useCropUploadQueue';
+import { listMedia, removeMedia, uploadMedia } from '@/api/admin/media';
 import { ApiClientError } from '@/api/client';
 import type { AdminMedia } from '@/types/adminContent';
 
@@ -23,6 +26,7 @@ export function MediaPickerModal({
   onSelect: (media: AdminMedia) => void;
 }) {
   const toast = useToast();
+  const confirm = useConfirm();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
@@ -48,6 +52,30 @@ export function MediaPickerModal({
     onError: (err) => toast.error(err instanceof ApiClientError ? err.message : 'อัปโหลดไม่สำเร็จ'),
   });
 
+  const cropQueue = useCropUploadQueue((readyFiles) => uploadMutation.mutate(readyFiles));
+
+  const removeMutation = useMutation({
+    mutationFn: (id: string) => removeMedia(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'media'] }),
+  });
+
+  const handleDelete = async (e: MouseEvent, media: AdminMedia) => {
+    e.stopPropagation();
+    const ok = await confirm({
+      title: `ลบไฟล์ "${media.originalName}" ?`,
+      message: 'หากไฟล์นี้ถูกใช้อยู่ที่อื่น ระบบจะปฏิเสธการลบ',
+      danger: true,
+      confirmLabel: 'ลบ',
+    });
+    if (!ok) return;
+    try {
+      await removeMutation.mutateAsync(media.id);
+      toast.success('ลบไฟล์สำเร็จ');
+    } catch (err) {
+      toast.error(err instanceof ApiClientError ? err.message : 'ลบไม่สำเร็จ — ไฟล์นี้อาจถูกใช้งานอยู่');
+    }
+  };
+
   return (
     <Modal open={open} onClose={onClose} title="เลือกรูปภาพ" size="lg">
       <div className="flex flex-col gap-4">
@@ -69,7 +97,7 @@ export function MediaPickerModal({
             hidden
             onChange={(e) => {
               const files = Array.from(e.target.files ?? []);
-              if (files.length > 0) uploadMutation.mutate(files);
+              if (files.length > 0) cropQueue.start(files);
               e.target.value = '';
             }}
           />
@@ -90,15 +118,24 @@ export function MediaPickerModal({
         ) : (
           <div className="grid max-h-[50vh] min-h-[200px] grid-cols-3 gap-3 overflow-y-auto sm:grid-cols-4">
             {(data?.items ?? []).map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => onSelect(m)}
-                className="group aspect-square overflow-hidden rounded-sm border border-hairline/20 transition-colors hover:border-brand-500"
-                title={m.originalName}
-              >
-                <img src={m.thumbnailUrl ?? m.url} alt={m.alt ?? ''} className="size-full object-cover transition-transform group-hover:scale-105" />
-              </button>
+              <div key={m.id} className="group relative aspect-square overflow-hidden rounded-sm border border-hairline/20 transition-colors hover:border-brand-500">
+                <button
+                  type="button"
+                  onClick={() => onSelect(m)}
+                  className="block size-full"
+                  title={m.originalName}
+                >
+                  <img src={m.thumbnailUrl ?? m.url} alt={m.alt ?? ''} className="size-full object-cover transition-transform group-hover:scale-105" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => handleDelete(e, m)}
+                  aria-label={`ลบ ${m.originalName}`}
+                  className="absolute right-1 top-1 grid size-6 place-items-center rounded-full bg-black/60 text-white opacity-0 transition-opacity hover:bg-danger group-hover:opacity-100"
+                >
+                  <Trash2 className="size-3.5" aria-hidden />
+                </button>
+              </div>
             ))}
             {(data?.items ?? []).length === 0 && (
               <p className="col-span-full py-12 text-center text-sm text-ink-subtle">
@@ -110,6 +147,13 @@ export function MediaPickerModal({
 
         {data?.meta && <Pagination page={data.meta.page} totalPages={data.meta.totalPages} onChange={setPage} />}
       </div>
+
+      <ImageCropModal
+        file={cropQueue.currentFile}
+        open={!!cropQueue.currentFile}
+        onCancel={cropQueue.skipCurrent}
+        onConfirm={cropQueue.confirmCurrent}
+      />
     </Modal>
   );
 }

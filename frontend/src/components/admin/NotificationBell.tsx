@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { AnimatePresence, motion } from 'motion/react';
 import { Bell, CheckCheck } from 'lucide-react';
 import { Spinner } from '@/components/ui/feedback';
+import { dropdownReveal } from '@/animations/variants';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import {
   listNotifications,
   markAllNotificationsRead,
@@ -16,6 +19,7 @@ export function NotificationBell() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const reduced = useReducedMotion();
 
   const { data, isLoading } = useQuery({
     queryKey: QUERY_KEY,
@@ -52,13 +56,18 @@ export function NotificationBell() {
         )}
       </button>
 
-      {open && (
-        <>
-          <button className="fixed inset-0 z-10 cursor-default" aria-hidden tabIndex={-1} onClick={() => setOpen(false)} />
-          <div
-            role="menu"
-            className="absolute right-0 top-full z-20 mt-2 w-80 overflow-hidden rounded-sm border border-hairline/15 bg-surface shadow-float"
-          >
+      <AnimatePresence>
+        {open && (
+          <>
+            <button className="fixed inset-0 z-10 cursor-default" aria-hidden tabIndex={-1} onClick={() => setOpen(false)} />
+            <motion.div
+              role="menu"
+              variants={reduced ? undefined : dropdownReveal}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="absolute right-0 top-full z-20 mt-2 w-80 overflow-hidden rounded-sm border border-hairline/15 bg-surface shadow-float"
+            >
             <div className="flex items-center justify-between border-b border-hairline/10 px-3.5 py-2.5">
               <p className="text-sm font-semibold text-ink">การแจ้งเตือน</p>
               {unread > 0 && (
@@ -94,9 +103,10 @@ export function NotificationBell() {
                 </button>
               ))}
             </div>
-          </div>
-        </>
-      )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
