@@ -2,17 +2,14 @@
 
 เว็บไซต์แผนกวิชาเทคโนโลยีคอมพิวเตอร์ วิทยาลัยเทคนิคร้อยเอ็ด
 
-มี 3 ทางเลือก เลือกตามความถนัดและอุปกรณ์ที่มี
+มี 4 ทางเลือก เลือกตามความถนัดและอุปกรณ์ที่มี
 
 | ทางเลือก | เหมาะกับ | ความยาก | ค่าใช้จ่าย |
 |---|---|:---:|---|
 | **A. Docker คำสั่งเดียว** | มีเครื่อง server / VPS ของตนเอง | ง่ายมาก | ค่าเช่า VPS |
-| **B. Fly.io (คลาวด์ แนะนำ)** | อยากได้ URL ใช้ทันที ไม่มี server | ง่าย | ตามการใช้งานจริง (เล็กน้อย) |
+| **B. Render (คลาวด์)** | อยากได้ URL ใช้ทันที ไม่มี server | ง่าย | มีแพ็กเกจฟรี |
 | **C. ติดตั้งเอง (Manual)** | อยากเข้าใจทุกขั้นตอน / ปรับแต่งลึก | ปานกลาง | แล้วแต่ host |
-
-> **หมายเหตุ:** เดิมโปรเจกต์นี้ใช้ Render.com (ดู `render.yaml`) แต่ย้ายมาใช้ Fly.io แทน
-> เพราะ Render free tier ระงับบริการเองเมื่อไม่ได้ใช้งานนาน ๆ และไฟล์อัปโหลดไม่ถาวร
-> `render.yaml` ยังอยู่ในโปรเจกต์เผื่ออ้างอิง แต่ไม่ได้ดูแลต่อแล้ว
+| **D. Fly.io (ทางเลือกสำรอง)** | ถ้า Render มีปัญหา (suspend/quota) | ง่าย | ต้องผูกบัตรเครดิต |
 
 ---
 
@@ -62,11 +59,70 @@ docker compose -f docker-compose.prod.yml up -d --build # อัปเดตห�
 
 ---
 
-## ทางเลือก B — Fly.io (คลาวด์ แนะนำ)
+## ทางเลือก B — Render.com (คลาวด์ มีแพ็กเกจฟรี)
+
+ได้ URL ใช้งานได้ทันทีโดยไม่ต้องมี server เป็นของตนเอง
+
+1. Push โค้ดขึ้น GitHub ให้เรียบร้อย
+2. สมัคร/เข้าสู่ระบบ [Render](https://render.com) แล้วไปที่ **New → Blueprint**
+3. เลือก repository ของโปรเจกต์นี้ — Render จะอ่านไฟล์ `render.yaml` แล้วเตรียม
+   ฐานข้อมูล + backend + frontend ให้อัตโนมัติ
+4. กรอกค่าที่ระบบขอ (ทำครั้งเดียว)
+   - `SEED_ADMIN_PASSWORD` ของ **tcom-api** — รหัสผ่านผู้ดูแล (อย่างน้อย 12 ตัวอักษร)
+5. กด **Apply** แล้วรอ build เสร็จ
+
+**หลัง deploy ครั้งแรก** ตรวจว่า URL จริงตรงกับที่ `render.yaml` อ้างถึงกันหรือไม่
+(ชื่อบน Render ต้อง unique ทั้งระบบ ถ้าชื่อที่ตั้งไว้ถูกใช้แล้ว Render จะเติมอักษรสุ่มต่อท้าย):
+
+- ที่บริการ **tcom-web** → ตั้ง `VITE_API_BASE_URL` = `https://tcom-api.onrender.com/api/v1`
+  (แทน `tcom-api` ด้วยชื่อจริง) แล้วสั่ง Manual Deploy
+- ที่บริการ **tcom-api** → ตั้ง `CORS_ORIGIN` = `https://tcom-web.onrender.com`
+  (แทนด้วยชื่อจริงของ tcom-web — **ห้ามปล่อยเป็น `*`**, เพราะ backend ตั้ง
+  `credentials: true` ไว้ การเปิด origin แบบ wildcard ร่วมกับ credentials
+  จะทำให้เว็บอื่นแอบใช้ session cookie ของแอดมินที่ล็อกอินอยู่ยิงคำขอมาได้)
+
+**ถ้าบริการ "หลับ"/"suspended":** free tier ของ Render จะพักบริการเองเมื่อไม่มี
+คนใช้งานนาน หรือถ้าเกิน quota เดือนนั้นจะขึ้นสถานะ **suspended** ตรงๆ — เข้า
+[dashboard.render.com](https://dashboard.render.com) เลือกบริการที่ค้าง แล้วกด
+**Resume** เอง (ถ้าเกิน quota อาจต้องรอรอบเดือนถัดไปหรืออัปเกรดแพลน) ไฟล์ที่
+อัปโหลดบน free tier **ไม่ถาวร** (หายทุกครั้งที่ redeploy) — ถ้าใช้งานจริงจัง
+แนะนำเพิ่ม Disk ให้บริการ tcom-api
+
+---
+
+## ทางเลือก C — ติดตั้งเอง (Manual)
+
+เหมาะกับผู้ที่ต้องการควบคุมทุกขั้นตอน หรือ host ที่แยกส่วนกัน
+(Frontend บน Vercel/Netlify · Backend บน Railway/VPS · Database เป็น PostgreSQL แยก)
+
+ดูขั้นตอนการติดตั้งแบบ dev และ build ได้ใน [README.md](../README.md)
+สรุปสำหรับ production:
+
+```bash
+# ── Backend ──
+cd backend
+npm ci
+cp .env.example .env          # กรอกค่าให้ครบ โดยเฉพาะ DATABASE_URL, SESSION_SECRET
+npm run build                 # คอมไพล์ TypeScript → dist/
+npx prisma migrate deploy     # หรือ  npx prisma db push  ถ้ายังไม่มี migration
+npm run db:seed -- --core-only
+npm start                     # รัน node dist/server.js (แนะนำใช้ pm2 คุมโปรเซส)
+
+# ── Frontend ──
+cd ../frontend
+npm ci
+# ตั้ง VITE_API_BASE_URL ใน .env ให้ชี้ไปที่ URL ของ backend เช่น https://api.example.com/api/v1
+npm run build                 # ได้ไฟล์ static ใน dist/ นำไปวางบน host หรือ CDN ได้เลย
+```
+
+---
+
+## ทางเลือก D — Fly.io (ทางเลือกสำรองถ้า Render มีปัญหา)
 
 Backend และ frontend รันเป็นแอปแยกกันบน Fly เชื่อมกันผ่านเครือข่ายภายใน (6PN) แบบ
 same-origin เหมือนตอน dev เลย (nginx ฝั่ง frontend proxy `/api` และ `/uploads` ไป backend
 โดยตรง) จึง **ไม่ต้องพึ่ง CORS** และไฟล์อัปโหลดเก็บถาวรผ่าน Fly Volume ไม่หายตอน redeploy
+Config พร้อมใช้แล้วที่ `backend/fly.toml` และ `frontend/fly.toml`
 
 **สิ่งที่ต้องมี:** บัญชี [Fly.io](https://fly.io) (ต้องผูกบัตรเครดิตแม้ใช้งานน้อย) และ
 [flyctl](https://fly.io/docs/flyctl/install/)
@@ -111,33 +167,6 @@ fly logs --app tcom-api-rtc          # ดู log backend
 fly status --app tcom-api-rtc        # เช็คสถานะเครื่อง
 fly deploy --app tcom-api-rtc        # deploy ใหม่หลังแก้โค้ด
 fly ssh console --app tcom-api-rtc   # เข้าไปดูข้างในเครื่องถ้าต้อง debug
-```
-
----
-
-## ทางเลือก C — ติดตั้งเอง (Manual)
-
-เหมาะกับผู้ที่ต้องการควบคุมทุกขั้นตอน หรือ host ที่แยกส่วนกัน
-(Frontend บน Vercel/Netlify · Backend บน Railway/VPS · Database เป็น PostgreSQL แยก)
-
-ดูขั้นตอนการติดตั้งแบบ dev และ build ได้ใน [README.md](../README.md)
-สรุปสำหรับ production:
-
-```bash
-# ── Backend ──
-cd backend
-npm ci
-cp .env.example .env          # กรอกค่าให้ครบ โดยเฉพาะ DATABASE_URL, SESSION_SECRET
-npm run build                 # คอมไพล์ TypeScript → dist/
-npx prisma migrate deploy     # หรือ  npx prisma db push  ถ้ายังไม่มี migration
-npm run db:seed -- --core-only
-npm start                     # รัน node dist/server.js (แนะนำใช้ pm2 คุมโปรเซส)
-
-# ── Frontend ──
-cd ../frontend
-npm ci
-# ตั้ง VITE_API_BASE_URL ใน .env ให้ชี้ไปที่ URL ของ backend เช่น https://api.example.com/api/v1
-npm run build                 # ได้ไฟล์ static ใน dist/ นำไปวางบน host หรือ CDN ได้เลย
 ```
 
 ---

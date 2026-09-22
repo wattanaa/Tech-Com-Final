@@ -1,9 +1,9 @@
 # ════════════════════════════════════════════════════════════════
 #  Render.com Blueprint — deploy ขึ้นคลาวด์แบบกดปุ่มเดียว
 #
-#  DEPRECATED: ย้ายไปใช้ Fly.io แล้ว (ดู backend/fly.toml, frontend/fly.toml,
-#  docs/DEPLOY.md ตัวเลือก B) เพราะ Render free tier ระงับบริการเองเมื่อไม่ใช้นาน ๆ
-#  และไฟล์อัปโหลดไม่ถาวร — เก็บไฟล์นี้ไว้เผื่ออ้างอิงเท่านั้น ไม่ได้ดูแลต่อ
+#  หมายเหตุ: ถ้าบริการขึ้นว่า "suspended" ใน Render dashboard ต้องกด
+#  Resume เองก่อน (มักเกิดจากไม่มีการใช้งานนานหรือเกิน free-tier quota)
+#  ดูขั้นตอนเต็มใน docs/DEPLOY.md ตัวเลือก B
 # ════════════════════════════════════════════════════════════════
 
 databases:
@@ -45,7 +45,7 @@ services:
       - key: SEED_ADMIN_NAME
         value: ผู้ดูแลระบบ
       - key: CORS_ORIGIN
-        value: "*"                    # ตั้ง * ไว้ก่อนชั่วคราวเพื่อให้รันผ่าน แล้วค่อยมาแก้เป็น URL frontend ทีหลัง
+        value: https://tcom-web-x196.onrender.com   # ต้องตรงกับ URL จริงของบริการ tcom-web เป๊ะ — Render เติมหางสุ่มเพราะชื่อ tcom-web ถูกใช้ไปแล้ว
 
   # ── Frontend (Static Site) ──
   - type: web
@@ -56,7 +56,7 @@ services:
     staticPublishPath: ./dist
     envVars:
       - key: VITE_API_BASE_URL
-        value: https://tcom-api.onrender.com/api/v1
+        value: https://tcom-api-x196.onrender.com/api/v1   # Render เติมหางสุ่มเพราะชื่อ tcom-api ถูกใช้ไปแล้ว
     routes:
       - type: rewrite
         source: /*
