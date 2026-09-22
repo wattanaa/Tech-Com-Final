@@ -9,10 +9,15 @@ import { ApiError } from '../utils/ApiError.js';
  * ถ้าเขียนลงดิสก์ก่อนตรวจ เท่ากับมีไฟล์ที่ยังไม่ผ่านการตรวจสอบวางอยู่บนเซิร์ฟเวอร์
  * แม้จะเพียงชั่วครู่ก็เป็นช่องโหว่
  */
+// multer รองรับ limit เดียวต่อคำขอ — ใช้ค่าเพดานที่สูงกว่า (วิดีโอ) เป็นเพดานนอกสุดไว้ก่อน
+// ส่วนการบังคับเพดานจริงตามชนิดไฟล์ (รูป 5MB / วิดีโอ 50MB) ทำใน media.service.ts#saveUpload
+// เพราะตอนนี้ (fileFilter) ยังไม่รู้ขนาดไฟล์จริงจนกว่าจะอ่าน buffer ครบ
+const maxUploadCeiling = Math.max(env.maxUploadBytes, env.maxVideoUploadBytes);
+
 export const uploadMiddleware = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: env.maxUploadBytes,
+    fileSize: maxUploadCeiling,
     files: 10,
     fields: 20,
   },
@@ -34,7 +39,7 @@ export function handleUploadError(err: unknown): never {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       throw ApiError.payloadTooLarge(
-        `ไฟล์ใหญ่เกิน ${env.MAX_UPLOAD_SIZE_MB} MB กรุณาย่อขนาดก่อนอัปโหลด`,
+        `ไฟล์ใหญ่เกิน ${env.MAX_VIDEO_UPLOAD_SIZE_MB} MB (รูปภาพจำกัดที่ ${env.MAX_UPLOAD_SIZE_MB} MB) กรุณาย่อขนาดก่อนอัปโหลด`,
       );
     }
     if (err.code === 'LIMIT_FILE_COUNT') {

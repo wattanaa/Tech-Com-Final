@@ -14,6 +14,39 @@ const publicRouter = Router();
 const adminRouter = Router();
 
 /**
+ * เติม config.backgroundMedia (url + mimeType) ให้ section ชนิด HERO ที่มี backgroundImageId
+ * ทำเฉพาะ HERO เพราะเป็น section เดียวที่ config อ้างถึงไฟล์สื่อโดยตรงในตอนนี้ — ยังไม่คุ้มที่จะ
+ * เขียน resolver แบบทั่วไปสำหรับทุก section type ที่ยังไม่มี pattern แบบนี้เลย
+ */
+async function withHeroBackgroundMedia<T extends { type: string; config: unknown }>(
+  sections: T[],
+): Promise<T[]> {
+  const mediaIds = sections
+    .filter((s) => s.type === 'HERO')
+    .map((s) => (s.config as { backgroundImageId?: string } | null)?.backgroundImageId)
+    .filter((id): id is string => Boolean(id));
+
+  if (mediaIds.length === 0) return sections;
+
+  const mediaRows = await prisma.media.findMany({
+    where: { id: { in: mediaIds } },
+    select: { id: true, url: true, mimeType: true },
+  });
+  const mediaById = new Map(mediaRows.map((m) => [m.id, m]));
+
+  return sections.map((section) => {
+    if (section.type !== 'HERO') return section;
+    const bgId = (section.config as { backgroundImageId?: string } | null)?.backgroundImageId;
+    const media = bgId ? mediaById.get(bgId) : undefined;
+    if (!media) return section;
+    return {
+      ...section,
+      config: { ...(section.config as Record<string, unknown>), backgroundMedia: { url: media.url, mimeType: media.mimeType } },
+    };
+  });
+}
+
+/**
  * GET /api/v1/homepage/sections
  * หน้าแรกเรียกเส้นทางนี้เส้นเดียวแล้วประกอบหน้าเองตามลำดับที่ได้มา
  * การสลับลำดับหรือซ่อน section จึงเปลี่ยนหน้าเว็บได้ทันทีโดยไม่ต้องแก้โค้ด
@@ -26,7 +59,7 @@ publicRouter.get(
       orderBy: { order: 'asc' },
       select: { id: true, type: true, title: true, subtitle: true, order: true, config: true },
     });
-    sendSuccess(res, sections);
+    sendSuccess(res, await withHeroBackgroundMedia(sections));
   }),
 );
 
@@ -38,10 +71,8 @@ adminRouter.get(
   '/sections',
   requirePermission('homepage:read'),
   asyncHandler(async (_req, res) => {
-    sendSuccess(
-      res,
-      await prisma.homepageSection.findMany({ orderBy: { order: 'asc' } }),
-    );
+    const sections = await prisma.homepageSection.findMany({ orderBy: { order: 'asc' } });
+    sendSuccess(res, await withHeroBackgroundMedia(sections));
   }),
 );
 

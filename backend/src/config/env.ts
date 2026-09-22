@@ -21,7 +21,10 @@ const envSchema = z.object({
 
   UPLOAD_DIR: z.string().default('./uploads'),
   MAX_UPLOAD_SIZE_MB: z.coerce.number().positive().default(5),
-  ALLOWED_MIME: z.string().default('image/jpeg,image/png,image/webp,image/svg+xml'),
+  MAX_VIDEO_UPLOAD_SIZE_MB: z.coerce.number().positive().default(50),
+  ALLOWED_MIME: z
+    .string()
+    .default('image/jpeg,image/png,image/webp,image/svg+xml,image/gif,video/mp4,video/webm'),
 
   BACKUP_DIR: z.string().default('./backups'),
 
@@ -53,6 +56,7 @@ export const env = {
   corsOrigins: raw.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean),
   allowedMimeTypes: raw.ALLOWED_MIME.split(',').map((m) => m.trim()).filter(Boolean),
   maxUploadBytes: raw.MAX_UPLOAD_SIZE_MB * 1024 * 1024,
+  maxVideoUploadBytes: raw.MAX_VIDEO_UPLOAD_SIZE_MB * 1024 * 1024,
   sessionMaxAgeMs: raw.SESSION_MAX_AGE_HOURS * 60 * 60 * 1000,
 } as const;
 

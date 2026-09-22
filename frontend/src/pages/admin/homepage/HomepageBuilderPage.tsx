@@ -64,9 +64,22 @@ export function HomepageBuilderPage() {
   const formFields = useMemo(() => {
     if (!editing) return [];
     const fields = getSectionFormFields(editing.type);
-    if (editing.type !== 'NEWS') return fields;
-    const categoryOptions = (categoriesQuery.data?.items ?? []).map((c) => ({ value: c.id, label: c.name }));
-    return fields.map((f) => (f.name === 'categoryId' ? { ...f, options: categoryOptions } : f));
+    if (editing.type === 'NEWS') {
+      const categoryOptions = (categoriesQuery.data?.items ?? []).map((c) => ({ value: c.id, label: c.name }));
+      return fields.map((f) => (f.name === 'categoryId' ? { ...f, options: categoryOptions } : f));
+    }
+    if (editing.type === 'HERO') {
+      // config.backgroundMedia มาจาก backend (ดู withHeroBackgroundMedia ใน homepage.routes.ts)
+      // resolve id → {url, mimeType} ให้แล้ว จึงโชว์ preview ได้ทันทีโดยไม่ต้อง fetch เพิ่ม
+      const bgId = editing.config.backgroundImageId as string | undefined;
+      const bgMedia = editing.config.backgroundMedia as { url: string; mimeType: string } | undefined;
+      return fields.map((f) =>
+        f.name === 'backgroundImageId' && bgId && bgMedia
+          ? { ...f, initialPreview: { id: bgId, url: bgMedia.url, mimeType: bgMedia.mimeType } }
+          : f,
+      );
+    }
+    return fields;
   }, [editing, categoriesQuery.data]);
 
   const handleToggleVisible = async (section: HomepageSectionAdmin) => {

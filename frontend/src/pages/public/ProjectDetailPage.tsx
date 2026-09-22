@@ -6,7 +6,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { MediaImage } from '@/components/ui/MediaImage';
 import { Badge } from '@/components/ui/Badge';
 import { GlassCard } from '@/components/ui/GlassCard';
-import { Spinner, ErrorState } from '@/components/ui/feedback';
+import { DetailSkeleton, ErrorState } from '@/components/ui/feedback';
 import { PageHero } from '@/components/common/PageHero';
 import { fullName } from '@/utils/format';
 
@@ -20,7 +20,7 @@ export default function ProjectDetailPage() {
   });
   useDocumentTitle(project?.name);
 
-  if (isPending) return <Spinner label="กำลังโหลดผลงาน" />;
+  if (isPending) return <DetailSkeleton />;
   if (isError || !project) {
     return <div className="mx-auto max-w-3xl px-4 py-20"><ErrorState onRetry={() => void refetch()} message="ไม่พบผลงานที่ต้องการ" /></div>;
   }

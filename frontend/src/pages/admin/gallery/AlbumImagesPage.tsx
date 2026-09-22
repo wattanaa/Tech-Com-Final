@@ -13,7 +13,7 @@ import { useConfirm } from '@/components/admin/ConfirmDialog';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useResourceAdmin } from '@/hooks/admin/useResourceAdmin';
 import { ApiClientError } from '@/api/client';
-import { resolveMediaUrl } from '@/utils/media';
+import { MediaImage } from '@/components/ui/MediaImage';
 import {
   addAlbumImages,
   listAlbumImages,
@@ -134,9 +134,10 @@ export function AlbumImagesPage() {
           renderItem={(image, handle) => (
             <GlassCard padding="sm" className="flex items-center gap-3">
               <DragHandle {...handle} />
-              <img
-                src={resolveMediaUrl(image.media.thumbnailUrl ?? image.media.url)}
+              <MediaImage
+                media={image.media}
                 alt={image.media.alt ?? ''}
+                thumb
                 className="size-14 shrink-0 rounded-sm object-cover"
               />
               <input
@@ -157,7 +158,12 @@ export function AlbumImagesPage() {
         />
       )}
 
-      <MediaPickerModal open={pickerOpen} onClose={() => setPickerOpen(false)} onSelect={handleAdd} />
+      <MediaPickerModal
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onSelect={handleAdd}
+        accept="image/*,image/gif,video/mp4,video/webm"
+      />
     </div>
   );
 }

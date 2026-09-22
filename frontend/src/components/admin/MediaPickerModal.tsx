@@ -13,18 +13,25 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useCropUploadQueue } from '@/hooks/admin/useCropUploadQueue';
 import { listMedia, removeMedia, uploadMedia } from '@/api/admin/media';
 import { ApiClientError } from '@/api/client';
-import { resolveMediaUrl } from '@/utils/media';
+import { resolveMediaUrl, isVideoMime } from '@/utils/media';
 import type { AdminMedia } from '@/types/adminContent';
 
-/** กล่องเลือกรูปภาพจากคลังสื่อ — ใช้ซ้ำได้จากทุก field รูปภาพในฟอร์มหลังบ้าน */
+/**
+ * กล่องเลือกรูปภาพจากคลังสื่อ — ใช้ซ้ำได้จากทุก field รูปภาพในฟอร์มหลังบ้าน
+ * accept กำหนดชนิดไฟล์ที่รับได้ — ค่าเริ่มต้นรูปภาพเท่านั้น (พฤติกรรมเดิมของทุกจุดที่เรียกอยู่แล้ว)
+ * ถ้ามี video/* หรือ image/gif ไฟล์ชนิดนั้นจะข้ามขั้นตอน crop ไปอัปโหลดตรงๆ เพราะ crop ด้วย
+ * canvas ทำลาย GIF เคลื่อนไหว (เหลือเฟรมเดียว) และทำกับวิดีโอไม่ได้เลย
+ */
 export function MediaPickerModal({
   open,
   onClose,
   onSelect,
+  accept = 'image/*',
 }: {
   open: boolean;
   onClose: () => void;
   onSelect: (media: AdminMedia) => void;
+  accept?: string;
 }) {
   const toast = useToast();
   const confirm = useConfirm();
@@ -93,12 +100,16 @@ export function MediaPickerModal({
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept={accept}
             multiple
             hidden
             onChange={(e) => {
               const files = Array.from(e.target.files ?? []);
-              if (files.length > 0) cropQueue.start(files);
+              // GIF/วิดีโอ crop ด้วย canvas ไม่ได้ (ทำลายเฟรมเคลื่อนไหว/ทำกับวิดีโอไม่ได้เลย) — ข้ามไปอัปโหลดตรง
+              const skipCrop = files.filter((f) => f.type === 'image/gif' || f.type.startsWith('video/'));
+              const toCrop = files.filter((f) => !skipCrop.includes(f));
+              if (skipCrop.length > 0) uploadMutation.mutate(skipCrop);
+              if (toCrop.length > 0) cropQueue.start(toCrop);
               e.target.value = '';
             }}
           />
@@ -126,7 +137,17 @@ export function MediaPickerModal({
                   className="block size-full"
                   title={m.originalName}
                 >
-                  <img src={resolveMediaUrl(m.thumbnailUrl ?? m.url)} alt={m.alt ?? ''} className="size-full object-cover transition-transform group-hover:scale-105" />
+                  {isVideoMime(m.mimeType) ? (
+                    <video
+                      src={resolveMediaUrl(m.url)}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="size-full object-cover transition-transform group-hover:scale-105"
+                    />
+                  ) : (
+                    <img src={resolveMediaUrl(m.thumbnailUrl ?? m.url)} alt={m.alt ?? ''} className="size-full object-cover transition-transform group-hover:scale-105" />
+                  )}
                 </button>
                 <button
                   type="button"

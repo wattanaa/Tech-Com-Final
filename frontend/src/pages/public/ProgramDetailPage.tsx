@@ -5,7 +5,7 @@ import { getProgramByCode } from '@/api/public';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { MediaImage } from '@/components/ui/MediaImage';
 import { GlassCard } from '@/components/ui/GlassCard';
-import { Spinner, ErrorState } from '@/components/ui/feedback';
+import { DetailSkeleton, ErrorState } from '@/components/ui/feedback';
 import { PageHero } from '@/components/common/PageHero';
 import { PROGRAM_LEVEL_LABEL } from '@/utils/format';
 
@@ -19,7 +19,7 @@ export default function ProgramDetailPage() {
   });
   useDocumentTitle(program?.name);
 
-  if (isPending) return <Spinner label="กำลังโหลดหลักสูตร" />;
+  if (isPending) return <DetailSkeleton sidebar />;
   if (isError || !program) {
     return <div className="mx-auto max-w-3xl px-4 py-20"><ErrorState onRetry={() => void refetch()} message="ไม่พบหลักสูตรที่ต้องการ" /></div>;
   }

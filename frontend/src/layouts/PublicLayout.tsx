@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { Navbar } from '@/components/common/Navbar';
 import { Footer } from '@/components/common/Footer';
+import { BackToTopButton } from '@/components/common/BackToTopButton';
 import { Spinner } from '@/components/ui/feedback';
 import { pageTransition } from '@/animations/variants';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -36,6 +37,7 @@ export function PublicLayout() {
         </AnimatePresence>
       </main>
       <Footer />
+      <BackToTopButton />
     </div>
   );
 }

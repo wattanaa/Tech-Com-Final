@@ -53,7 +53,7 @@ export function Navbar() {
               <Cpu className="size-[18px]" aria-hidden />
             </span>
           )}
-          <span className="leading-tight">
+          <span className="hidden leading-tight sm:block">
             <span className="block font-display text-[13px] font-bold">{SITE_NAME}</span>
             <span className="block text-[10.5px] text-ink-subtle">{COLLEGE_NAME}</span>
           </span>

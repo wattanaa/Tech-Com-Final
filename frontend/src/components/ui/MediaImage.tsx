@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ImageOff } from 'lucide-react';
 import type { Media } from '@/types';
 import { cn } from '@/utils/cn';
-import { resolveMediaUrl } from '@/utils/media';
+import { resolveMediaUrl, isVideoMime } from '@/utils/media';
 
 /**
  * แสดงรูปจาก Media พร้อม lazy loading และ fallback เป็นพื้นไล่สีน้ำเงินเมื่อไม่มีรูป
@@ -21,7 +21,10 @@ export function MediaImage({
   thumb?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
-  const src = resolveMediaUrl(thumb ? media?.thumbnailUrl ?? media?.url : media?.url);
+  const isVideo = isVideoMime(media?.mimeType);
+  // วิดีโอไม่มี thumbnailUrl (ไม่มี ffmpeg ตัด poster ให้) — ใช้ url จริงเสมอ ให้เบราว์เซอร์
+  // แสดงเฟรมแรกเองผ่าน preload="metadata" แทน
+  const src = resolveMediaUrl(isVideo ? media?.url : thumb ? media?.thumbnailUrl ?? media?.url : media?.url);
 
   if (!src || failed) {
     return (
@@ -35,6 +38,20 @@ export function MediaImage({
       >
         <ImageOff className="size-8" aria-hidden />
       </div>
+    );
+  }
+
+  if (isVideo) {
+    return (
+      <video
+        src={src}
+        muted
+        playsInline
+        preload="metadata"
+        controls={!thumb}
+        onError={() => setFailed(true)}
+        className={cn('h-full w-full object-cover', className)}
+      />
     );
   }
 

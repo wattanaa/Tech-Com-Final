@@ -20,7 +20,9 @@ const imageSelect = {
   id: true,
   caption: true,
   order: true,
-  media: { select: { id: true, url: true, thumbnailUrl: true, alt: true, width: true, height: true } },
+  media: {
+    select: { id: true, url: true, thumbnailUrl: true, alt: true, width: true, height: true, mimeType: true },
+  },
 } as const;
 
 /** GET /api/v1/gallery — อัลบั้มที่เผยแพร่แล้วทั้งหมดพร้อมภาพ สำหรับหน้าคลังภาพและ section คลังภาพหน้าแรก */

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Loader2, Inbox, TriangleAlert, RotateCw } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Button } from './Button';
+import { GlassCard } from './GlassCard';
 
 /** โครงร่างระหว่างโหลดข้อมูล */
 export function Skeleton({ className }: { className?: string }) {
@@ -32,6 +33,50 @@ export function SkeletonGrid({ count = 6, cols = 3 }: { count?: number; cols?: n
     >
       {Array.from({ length: count }).map((_, i) => (
         <SkeletonCard key={i} />
+      ))}
+      <span className="sr-only">กำลังโหลดข้อมูล</span>
+    </div>
+  );
+}
+
+/** โครงร่างหน้ารายละเอียด — ภาพปก + ข้อความหลายบรรทัด ใช้แทน Spinner กันหน้าจอกระโดดตอนโหลดเสร็จ */
+export function DetailSkeleton({ sidebar = false }: { sidebar?: boolean }) {
+  return (
+    <div className={cn('mx-auto max-w-3xl px-4 py-12', sidebar && 'max-w-5xl')} aria-busy="true" aria-live="polite">
+      <div className={cn(sidebar && 'grid gap-8 lg:grid-cols-[1fr_320px]')}>
+        <div className="flex flex-col gap-4">
+          <Skeleton className="aspect-[16/9] w-full rounded-lg" />
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-7 w-3/4" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+        </div>
+        {sidebar && (
+          <div className="mt-6 lg:mt-0">
+            <GlassCard padding="lg" className="flex flex-col gap-3">
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+            </GlassCard>
+          </div>
+        )}
+      </div>
+      <span className="sr-only">กำลังโหลดข้อมูล</span>
+    </div>
+  );
+}
+
+/** โครงร่างรายการแบบแถวเรียบ (ไม่มีรูป) — ใช้กับผลการค้นหา */
+export function SkeletonList({ count = 5 }: { count?: number }) {
+  return (
+    <div className="flex flex-col gap-3" aria-busy="true" aria-live="polite">
+      {Array.from({ length: count }).map((_, i) => (
+        <GlassCard key={i} padding="md" className="flex flex-col gap-2">
+          <Skeleton className="h-4 w-1/3" />
+          <Skeleton className="h-3 w-2/3" />
+        </GlassCard>
       ))}
       <span className="sr-only">กำลังโหลดข้อมูล</span>
     </div>

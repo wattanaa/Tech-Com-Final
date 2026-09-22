@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import type { GalleryImage } from '@/types';
-import { resolveMediaUrl } from '@/utils/media';
+import { resolveMediaUrl, isVideoMime } from '@/utils/media';
 
 /** หน้าต่างดูภาพขยาย — รองรับปุ่มถัดไป/ก่อนหน้า และคีย์บอร์ด (← → Esc) */
 export function Lightbox({
@@ -90,11 +90,21 @@ export function Lightbox({
             animate={{ scale: 1, opacity: 1 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <img
-              src={resolveMediaUrl(current.media.url)}
-              alt={current.caption ?? current.media.alt ?? 'ภาพกิจกรรม'}
-              className="max-h-[80vh] w-auto rounded-lg object-contain"
-            />
+            {isVideoMime(current.media.mimeType) ? (
+              <video
+                src={resolveMediaUrl(current.media.url)}
+                controls
+                autoPlay
+                playsInline
+                className="max-h-[80vh] w-auto rounded-lg"
+              />
+            ) : (
+              <img
+                src={resolveMediaUrl(current.media.url)}
+                alt={current.caption ?? current.media.alt ?? 'ภาพกิจกรรม'}
+                className="max-h-[80vh] w-auto rounded-lg object-contain"
+              />
+            )}
             {current.caption && (
               <figcaption className="text-center text-sm text-white/80">{current.caption}</figcaption>
             )}

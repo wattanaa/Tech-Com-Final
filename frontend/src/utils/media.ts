@@ -11,3 +11,8 @@ export function resolveMediaUrl(url: string | null | undefined): string | undefi
   if (/^https?:\/\//i.test(url) || url.startsWith('data:')) return url;
   return `${API_ORIGIN}${url}`;
 }
+
+/** true ถ้าเป็นไฟล์วิดีโอ (mp4/webm) — ใช้แยกว่าจะ render เป็น video tag แทน img tag */
+export function isVideoMime(mimeType: string | null | undefined): boolean {
+  return Boolean(mimeType?.startsWith('video/'));
+}

@@ -6,7 +6,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { PageHero } from '@/components/common/PageHero';
 import { MediaImage } from '@/components/ui/MediaImage';
 import { Lightbox } from '@/components/ui/Lightbox';
-import { Spinner, ErrorState, EmptyState } from '@/components/ui/feedback';
+import { SkeletonGrid, ErrorState, EmptyState } from '@/components/ui/feedback';
 import { Reveal } from '@/components/ui/Reveal';
 import { thaiDate } from '@/utils/format';
 
@@ -35,7 +35,7 @@ export default function GalleryPage() {
         breadcrumb={[{ label: 'คลังภาพ' }]}
       />
       <div className="mx-auto max-w-6xl px-4 py-12">
-        {isPending && <Spinner label="กำลังโหลดคลังภาพ" />}
+        {isPending && <SkeletonGrid count={8} cols={4} />}
         {isError && <ErrorState onRetry={() => void refetch()} />}
         {data && data.length === 0 && <EmptyState message="ยังไม่มีอัลบั้มภาพ" />}
         <div className="flex flex-col gap-12">

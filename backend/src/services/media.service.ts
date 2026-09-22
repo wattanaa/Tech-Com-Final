@@ -18,7 +18,25 @@ const MAGIC_BYTES: { mime: string; check: (b: Buffer) => boolean }[] = [
     mime: 'image/webp',
     check: (b) => b.subarray(0, 4).toString() === 'RIFF' && b.subarray(8, 12).toString() === 'WEBP',
   },
+  {
+    mime: 'image/gif',
+    check: (b) => b.subarray(0, 4).toString('ascii') === 'GIF8',
+  },
+  {
+    // ไฟล์ MP4/MOV ทุกไฟล์มีกล่อง "ftyp" อยู่ที่ offset 4-7 เสมอ (ISO base media format)
+    mime: 'video/mp4',
+    check: (b) => b.length >= 8 && b.subarray(4, 8).toString('ascii') === 'ftyp',
+  },
+  {
+    mime: 'video/webm',
+    check: (b) => b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3,
+  },
 ];
+
+const VIDEO_EXTENSION: Record<string, string> = {
+  'video/mp4': 'mp4',
+  'video/webm': 'webm',
+};
 
 const THUMBNAIL_WIDTH = 480;
 const MAX_WIDTH = 2000;
@@ -42,12 +60,22 @@ export async function saveUpload(file: UploadedFile, uploadedById: string, folde
   if (file.buffer.length === 0) throw ApiError.badRequest('ไฟล์ว่างเปล่า');
 
   const isSvg = file.mimetype === 'image/svg+xml';
+  const matched = isSvg ? null : MAGIC_BYTES.find((m) => m.check(file.buffer));
+  if (!isSvg && !matched) {
+    throw ApiError.badRequest('เนื้อไฟล์ไม่ตรงกับชนิดที่รองรับ กรุณาตรวจสอบไฟล์อีกครั้ง');
+  }
 
-  if (!isSvg) {
-    const matched = MAGIC_BYTES.find((m) => m.check(file.buffer));
-    if (!matched) {
-      throw ApiError.badRequest('เนื้อไฟล์ไม่ตรงกับชนิดภาพที่รองรับ กรุณาตรวจสอบไฟล์อีกครั้ง');
-    }
+  const isVideo = matched?.mime.startsWith('video/') ?? false;
+  const isGif = matched?.mime === 'image/gif';
+
+  // เพดานขนาดแยกตามชนิดไฟล์ — วิดีโอไฟล์ใหญ่กว่ารูปมากโดยธรรมชาติ ต้องรอให้อ่าน buffer
+  // ครบก่อนถึงจะรู้ขนาดจริง (multer เช็คแค่เพดานรวมสูงสุดไว้ชั้นนอกใน upload.middleware.ts)
+  const sizeLimit = isVideo ? env.maxVideoUploadBytes : env.maxUploadBytes;
+  if (file.buffer.length > sizeLimit) {
+    const limitMb = isVideo ? env.MAX_VIDEO_UPLOAD_SIZE_MB : env.MAX_UPLOAD_SIZE_MB;
+    throw ApiError.payloadTooLarge(
+      `ไฟล์${isVideo ? 'วิดีโอ' : 'รูปภาพ'}ใหญ่เกิน ${limitMb} MB กรุณาย่อขนาดก่อนอัปโหลด`,
+    );
   }
 
   const id = randomUUID();
@@ -57,6 +85,8 @@ export async function saveUpload(file: UploadedFile, uploadedById: string, folde
 
   let filename: string;
   let thumbnailName: string | null = null;
+  // SVG ไม่มี thumbnail แยก แต่ใช้ตัวเองแทนได้ (ไฟล์เล็ก) — วิดีโอห้าม fallback แบบเดียวกัน
+  let thumbnailUrl: string | null = null;
   let width: number | null = null;
   let height: number | null = null;
   let size: number;
@@ -69,22 +99,34 @@ export async function saveUpload(file: UploadedFile, uploadedById: string, folde
     await writeFile(path.join(dir, filename), cleaned, 'utf8');
     size = Buffer.byteLength(cleaned, 'utf8');
     mimeType = 'image/svg+xml';
+    thumbnailUrl = `/uploads/${safeFolder}/${filename}`;
+  } else if (isVideo) {
+    // ไม่มี ffmpeg ในเซิร์ฟเวอร์ — เก็บไฟล์ต้นฉบับตรงๆ ไม่ตัดต่อ/สร้าง thumbnail
+    // เบราว์เซอร์แสดง poster เฟรมแรกให้เองผ่าน <video preload="metadata"> โดยไม่ต้องประมวลผลฝั่งเซิร์ฟเวอร์
+    const ext = VIDEO_EXTENSION[matched!.mime] ?? 'mp4';
+    filename = `${id}.${ext}`;
+    await writeFile(path.join(dir, filename), file.buffer);
+    size = file.buffer.length;
+    mimeType = matched!.mime;
+    // thumbnailUrl ปล่อยเป็น null โดยตั้งใจ — ห้าม fallback ไปที่ url วิดีโอ เพราะ <img src>
+    // ที่ชี้ไปไฟล์วิดีโอจะขึ้นไอคอนรูปแตก ไม่ใช่ภาพตัวอย่างจริง
   } else {
-    const image = sharp(file.buffer, { failOn: 'error' });
+    // ภาพนิ่งทั่วไปและ GIF ใช้ sharp เหมือนกัน ต่างกันแค่ต้องรักษาเฟรมเคลื่อนไหวของ GIF ไว้
+    const image = sharp(file.buffer, { failOn: 'error', animated: isGif });
     const meta = await image.metadata();
 
     filename = `${id}.webp`;
     thumbnailName = `${id}-thumb.webp`;
 
     // ย่อภาพที่ใหญ่เกินจำเป็น — ไม่มีใครต้องการภาพกว้าง 6000px บนหน้าเว็บ
-    const main = await image
-      .clone()
-      .rotate() // หมุนตาม EXIF แล้วทิ้ง metadata ทิ้ง (รวมถึงพิกัด GPS ถ้ามี)
-      .resize({ width: MAX_WIDTH, withoutEnlargement: true })
-      .webp({ quality: 82 })
-      .toBuffer();
+    // GIF: คงเฟรมเคลื่อนไหวไว้ในไฟล์หลัก (animated webp เล่นได้เหมือน <img> ปกติ) แต่ .rotate()
+    // ไม่มีความหมายกับ GIF (ไม่มี EXIF orientation) จึงข้ามไป
+    let mainPipeline = image.clone().resize({ width: MAX_WIDTH, withoutEnlargement: true });
+    if (!isGif) mainPipeline = mainPipeline.rotate(); // หมุนตาม EXIF แล้วทิ้ง metadata (รวม GPS ถ้ามี)
+    const main = await mainPipeline.webp({ quality: isGif ? 78 : 82 }).toBuffer();
 
-    const thumb = await sharp(file.buffer)
+    // thumbnail ของ GIF เป็นภาพนิ่งเฟรมแรกเสมอ (animated:false) — กริดตัวอย่างไม่จำเป็นต้องเคลื่อนไหว
+    const thumb = await sharp(file.buffer, { animated: false })
       .rotate()
       .resize({ width: THUMBNAIL_WIDTH, withoutEnlargement: true })
       .webp({ quality: 72 })
@@ -100,6 +142,7 @@ export async function saveUpload(file: UploadedFile, uploadedById: string, folde
       meta.width && meta.height
         ? Math.round((Math.min(meta.width, MAX_WIDTH) / meta.width) * meta.height)
         : null;
+    thumbnailUrl = `/uploads/${safeFolder}/${thumbnailName}`;
   }
 
   return prisma.media.create({
@@ -111,7 +154,7 @@ export async function saveUpload(file: UploadedFile, uploadedById: string, folde
       width,
       height,
       url: `/uploads/${safeFolder}/${filename}`,
-      thumbnailUrl: thumbnailName ? `/uploads/${safeFolder}/${thumbnailName}` : `/uploads/${safeFolder}/${filename}`,
+      thumbnailUrl,
       alt: file.originalname.replace(/\.[^.]+$/, '').slice(0, 200),
       folder: safeFolder,
       uploadedById,

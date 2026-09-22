@@ -10,6 +10,7 @@ export interface Media {
   alt?: string | null;
   width?: number | null;
   height?: number | null;
+  mimeType?: string | null;
 }
 
 export interface Category {

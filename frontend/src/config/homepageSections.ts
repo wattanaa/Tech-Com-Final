@@ -27,7 +27,7 @@ const configFieldsByType: Record<SectionType, ResourceFormField[]> = {
     { name: 'badge', label: 'ข้อความป้ายเล็กด้านบน', type: 'text', colSpan: 2 },
     { name: 'heading', label: 'หัวข้อหลัก', type: 'text', colSpan: 2 },
     { name: 'subheading', label: 'หัวข้อรอง', type: 'textarea', colSpan: 2, rows: 2 },
-    { name: 'backgroundImageId', label: 'ภาพพื้นหลัง', type: 'image', colSpan: 2 },
+    { name: 'backgroundImageId', label: 'พื้นหลัง (รูปภาพหรือวิดีโอ)', type: 'media', colSpan: 2 },
     { name: 'primaryCtaLabel', label: 'ปุ่มหลัก — ข้อความ', type: 'text' },
     { name: 'primaryCtaHref', label: 'ปุ่มหลัก — ลิงก์', type: 'text' },
     { name: 'secondaryCtaLabel', label: 'ปุ่มรอง — ข้อความ', type: 'text' },

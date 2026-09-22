@@ -3,7 +3,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ZodType } from 'zod';
 import { Button } from '@/components/ui/Button';
 import { TagsInput } from './TagsInput';
-import { ImagePickerField, type ImagePreview } from './ImagePickerField';
+import { ImagePickerField } from './ImagePickerField';
+import { MediaPickerField, type MediaPreview } from './MediaPickerField';
 import { cn } from '@/utils/cn';
 
 export type FieldType =
@@ -17,6 +18,7 @@ export type FieldType =
   | 'date'
   | 'color'
   | 'image'
+  | 'media'
   | 'password';
 
 export interface SelectOption {
@@ -34,8 +36,8 @@ export interface ResourceFormField {
   /** กินพื้นที่ 2 คอลัมน์ในตาราง grid 2 คอลัมน์ — ใช้กับข้อความยาว เช่น รายละเอียด */
   colSpan?: 1 | 2;
   rows?: number;
-  /** เฉพาะ type: 'image' — รูปที่เลือกไว้อยู่แล้วตอนแก้ไข (ไม่มีค่าตอนสร้างใหม่) */
-  initialPreview?: ImagePreview | null;
+  /** เฉพาะ type: 'image'/'media' — ไฟล์ที่เลือกไว้อยู่แล้วตอนแก้ไข (ไม่มีค่าตอนสร้างใหม่) */
+  initialPreview?: MediaPreview | null;
 }
 
 interface ResourceFormProps<T extends FieldValues> {
@@ -78,7 +80,7 @@ export function ResourceForm<T extends FieldValues>({
     const sanitized = { ...values } as Record<string, unknown>;
     for (const field of fields) {
       if (
-        (field.type === 'select' || field.type === 'image' || field.type === 'password') &&
+        (field.type === 'select' || field.type === 'image' || field.type === 'media' || field.type === 'password') &&
         sanitized[field.name] === ''
       ) {
         sanitized[field.name] = undefined;
@@ -170,6 +172,20 @@ export function ResourceForm<T extends FieldValues>({
                   name={name}
                   render={({ field: { value, onChange } }) => (
                     <ImagePickerField
+                      value={value as string | undefined}
+                      initialPreview={field.initialPreview}
+                      onChange={onChange}
+                    />
+                  )}
+                />
+              )}
+
+              {field.type === 'media' && (
+                <Controller
+                  control={control}
+                  name={name}
+                  render={({ field: { value, onChange } }) => (
+                    <MediaPickerField
                       value={value as string | undefined}
                       initialPreview={field.initialPreview}
                       onChange={onChange}

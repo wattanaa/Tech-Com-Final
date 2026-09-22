@@ -4,7 +4,6 @@ import type { HomepageSection, SectionType } from '@/types';
 import { getHomepageSections } from '@/api/public';
 import { renderSection } from '@/sections/registry';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { Spinner } from '@/components/ui/feedback';
 
 /** ลำดับ section เริ่มต้น — ใช้เมื่อยังโหลดจาก API ไม่ได้ เว็บจึงแสดงหน้าแรกได้เสมอ */
 const FALLBACK_ORDER: SectionType[] = [
@@ -18,7 +17,7 @@ const FALLBACK_ORDER: SectionType[] = [
  */
 export default function HomePage() {
   useDocumentTitle();
-  const { data, isPending } = useQuery({
+  const { data } = useQuery({
     queryKey: ['homepage-sections'],
     queryFn: getHomepageSections,
     staleTime: 5 * 60_000,
@@ -28,10 +27,6 @@ export default function HomePage() {
     data && data.length > 0
       ? data
       : FALLBACK_ORDER.map((type, i) => ({ id: type, type, order: i, config: {}, title: null, subtitle: null }));
-
-  if (isPending && !data) {
-    return <Spinner label="กำลังโหลดหน้าแรก" />;
-  }
 
   return (
     <div className="flex flex-col">

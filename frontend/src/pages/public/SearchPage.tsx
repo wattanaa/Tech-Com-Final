@@ -8,7 +8,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { PageHero } from '@/components/common/PageHero';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { GlassCard } from '@/components/ui/GlassCard';
-import { Spinner, EmptyState } from '@/components/ui/feedback';
+import { SkeletonList, EmptyState } from '@/components/ui/feedback';
 import { Badge } from '@/components/ui/Badge';
 
 /** หน้าค้นหาทั่วเว็บไซต์ — ผลลัพธ์จัดกลุ่มตามประเภทเนื้อหา */
@@ -38,7 +38,7 @@ export default function SearchPage() {
         {debounced.trim().length < 2 && (
           <EmptyState title="พิมพ์คำค้นหา" message="กรอกอย่างน้อย 2 ตัวอักษรเพื่อค้นหาทั่วทั้งเว็บไซต์" icon={<SearchX className="size-6" aria-hidden />} />
         )}
-        {query.isPending && debounced.trim().length >= 2 && <Spinner label="กำลังค้นหา" />}
+        {query.isPending && debounced.trim().length >= 2 && <SkeletonList count={5} />}
         {query.data && query.data.total === 0 && (
           <EmptyState title="ไม่พบผลลัพธ์" message={`ไม่พบเนื้อหาที่ตรงกับ “${debounced}”`} icon={<SearchX className="size-6" aria-hidden />} />
         )}

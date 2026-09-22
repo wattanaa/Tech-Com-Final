@@ -3,6 +3,8 @@ import { motion } from 'motion/react';
 import { ArrowRight, Cpu, GraduationCap, Sparkles } from 'lucide-react';
 import type { HomepageSection } from '@/types';
 import { fadeUp, stagger } from '@/animations/variants';
+import { resolveMediaUrl, isVideoMime } from '@/utils/media';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 interface HeroConfig {
   badge?: string;
@@ -12,6 +14,8 @@ interface HeroConfig {
   secondaryCta?: { label: string; href: string };
   showGrid?: boolean;
   showGlow?: boolean;
+  /** เติมโดย backend จาก backgroundImageId (ดู withHeroBackgroundMedia ใน homepage.routes.ts) */
+  backgroundMedia?: { url: string; mimeType: string } | null;
 }
 
 /** ส่วนหัวหน้าแรก — ข้อความหลัก ปุ่มเรียกดำเนินการ และภาพประกอบกระจกลอย */
@@ -20,9 +24,30 @@ export function HeroSection({ section }: { section: HomepageSection }) {
   const heading = c.heading ?? 'สร้างทักษะดิจิทัล สร้างนวัตกรรม สร้างอนาคต';
   const primary = c.primaryCta ?? { label: 'ดูหลักสูตร', href: '/programs' };
   const secondary = c.secondaryCta ?? { label: 'เกี่ยวกับแผนก', href: '/about' };
+  const reducedMotion = useReducedMotion();
+  const bgSrc = resolveMediaUrl(c.backgroundMedia?.url);
+  const bgIsVideo = isVideoMime(c.backgroundMedia?.mimeType);
 
   return (
-    <section className="relative overflow-hidden">
+    <section className={`relative overflow-hidden ${bgSrc ? 'min-h-[420px]' : ''}`}>
+      {bgSrc && (
+        <div className="absolute inset-0" aria-hidden>
+          {bgIsVideo ? (
+            <video
+              src={bgSrc}
+              autoPlay={!reducedMotion}
+              loop={!reducedMotion}
+              muted
+              playsInline
+              className="size-full object-cover"
+            />
+          ) : (
+            <img src={bgSrc} alt="" className="size-full object-cover" />
+          )}
+          {/* พื้นหลังมืดไล่สี — ให้ตัวอักษรอ่านง่ายขึ้นเมื่อทับบนภาพ/วิดีโอ */}
+          <div className="absolute inset-0 bg-gradient-to-b from-canvas/70 via-canvas/60 to-canvas" />
+        </div>
+      )}
       {c.showGrid !== false && (
         <div
           className="pointer-events-none absolute inset-0"

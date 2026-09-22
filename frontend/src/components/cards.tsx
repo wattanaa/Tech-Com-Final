@@ -153,7 +153,7 @@ export function ActivityCard({ activity }: { activity: Activity }) {
         <div className="relative w-28 shrink-0 overflow-hidden sm:w-36">
           <MediaImage media={activity.coverImage} alt={activity.title} className="h-full transition-transform duration-500 group-hover:scale-105" />
         </div>
-        <div className="flex-1 p-4">
+        <div className="min-w-0 flex-1 p-4">
           {activity.category && <Badge color={activity.category.color} className="mb-2">{activity.category.name}</Badge>}
           <h3 className="line-clamp-2 font-display text-[14px] font-semibold group-hover:text-brand-500">{activity.title}</h3>
           <div className="mt-2 flex flex-wrap gap-3 text-[11.5px] text-ink-subtle">

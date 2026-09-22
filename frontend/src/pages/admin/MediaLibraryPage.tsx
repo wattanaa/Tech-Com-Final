@@ -14,7 +14,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useCropUploadQueue } from '@/hooks/admin/useCropUploadQueue';
 import { listMedia, removeMedia, uploadMedia } from '@/api/admin/media';
-import { resolveMediaUrl } from '@/utils/media';
+import { resolveMediaUrl, isVideoMime } from '@/utils/media';
 import { ApiClientError } from '@/api/client';
 
 const FILE_SIZE_UNITS = ['B', 'KB', 'MB', 'GB'];
@@ -91,12 +91,16 @@ export function MediaLibraryPage() {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/*,image/gif,video/mp4,video/webm"
               multiple
               hidden
               onChange={(e) => {
                 const files = Array.from(e.target.files ?? []);
-                if (files.length > 0) cropQueue.start(files);
+                // GIF/วิดีโอ crop ด้วย canvas ไม่ได้ (ทำลายเฟรมเคลื่อนไหว/ทำกับวิดีโอไม่ได้เลย) — ข้ามไปอัปโหลดตรง
+                const skipCrop = files.filter((f) => f.type === 'image/gif' || f.type.startsWith('video/'));
+                const toCrop = files.filter((f) => !skipCrop.includes(f));
+                if (skipCrop.length > 0) uploadMutation.mutate(skipCrop);
+                if (toCrop.length > 0) cropQueue.start(toCrop);
                 e.target.value = '';
               }}
             />
@@ -165,7 +169,17 @@ export function MediaLibraryPage() {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
           {data.items.map((m) => (
             <div key={m.id} className="group relative aspect-square overflow-hidden rounded-lg border border-hairline/15">
-              <img src={resolveMediaUrl(m.thumbnailUrl ?? m.url)} alt={m.alt ?? m.originalName} className="size-full object-cover" />
+              {isVideoMime(m.mimeType) ? (
+                <video
+                  src={resolveMediaUrl(m.url)}
+                  muted
+                  playsInline
+                  preload="metadata"
+                  className="size-full object-cover"
+                />
+              ) : (
+                <img src={resolveMediaUrl(m.thumbnailUrl ?? m.url)} alt={m.alt ?? m.originalName} className="size-full object-cover" />
+              )}
               <div className="absolute inset-x-0 bottom-0 truncate bg-black/60 px-2 py-1 text-[11px] text-white opacity-0 transition-opacity group-hover:opacity-100">
                 {m.originalName} · {formatSize(m.size)}
               </div>

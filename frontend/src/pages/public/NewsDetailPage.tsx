@@ -5,7 +5,7 @@ import { getNews, getNewsBySlug } from '@/api/public';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { MediaImage } from '@/components/ui/MediaImage';
 import { Badge } from '@/components/ui/Badge';
-import { Spinner, ErrorState } from '@/components/ui/feedback';
+import { DetailSkeleton, ErrorState } from '@/components/ui/feedback';
 import { NewsCard } from '@/components/cards';
 import { PageHero } from '@/components/common/PageHero';
 import { thaiDate, thaiNumber } from '@/utils/format';
@@ -26,7 +26,7 @@ export default function NewsDetailPage() {
     enabled: !!news,
   });
 
-  if (isPending) return <Spinner label="กำลังโหลดข่าว" />;
+  if (isPending) return <DetailSkeleton />;
   if (isError || !news) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20">
