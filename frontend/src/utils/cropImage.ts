@@ -17,7 +17,9 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 /**
  * ครอปภาพตามพิกัดที่เลือก แล้วย่อขนาดตาม outputWidth (ถ้าระบุ) ก่อนส่งออกเป็นไฟล์
  * ทำทั้งหมดฝั่ง client ด้วย canvas — เซิร์ฟเวอร์จะเข้ารหัสเป็น WebP ซ้ำอีกชั้นอยู่แล้ว
- * ที่นี่จึงแค่ต้องได้พิกเซลที่ถูกต้อง ไม่ต้องกังวลเรื่องรูปแบบไฟล์สุดท้าย
+ * ส่งออกเป็น PNG (ไม่ใช่ JPEG) เพื่อรักษาพื้นหลังโปร่งใส — แคนวาสเริ่มต้นเป็นโปร่งใส
+ * และ JPEG ไม่รองรับ alpha channel เลย ถ้าใช้ JPEG พื้นหลังโปร่งใสจะถูกเติมทึบตรงนี้ทันที
+ * ก่อนถึงเซิร์ฟเวอร์ด้วยซ้ำ แก้ตอนนั้นไม่ทันแล้ว
  */
 export async function createCroppedImageBlob(
   imageSrc: string,
@@ -39,8 +41,7 @@ export async function createCroppedImageBlob(
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error('สร้างไฟล์ภาพไม่สำเร็จ'))),
-      'image/jpeg',
-      0.92,
+      'image/png',
     );
   });
 }

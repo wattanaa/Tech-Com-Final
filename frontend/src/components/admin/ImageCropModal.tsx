@@ -63,7 +63,7 @@ export function ImageCropModal({
       const width = outputWidth ? Number(outputWidth) : undefined;
       const blob = await createCroppedImageBlob(imageSrc, croppedAreaPixels, width);
       const baseName = (file?.name ?? 'image').replace(/\.[^./]+$/, '');
-      onConfirm(blob, `${baseName}.jpg`);
+      onConfirm(blob, `${baseName}.png`);
     } finally {
       setIsProcessing(false);
     }
