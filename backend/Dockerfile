@@ -29,7 +29,8 @@ FROM node:20-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 
-RUN apt-get update -y && apt-get install -y --no-install-recommends openssl \
+# postgresql-client ให้ pg_dump/pg_restore ที่ฟีเจอร์สำรองข้อมูล (backup.service.ts) เรียกใช้
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl postgresql-client \
   && rm -rf /var/lib/apt/lists/*
 
 # คัดลอกทุกอย่างที่จำเป็นจากขั้น build
