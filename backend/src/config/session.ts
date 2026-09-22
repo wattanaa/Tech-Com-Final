@@ -26,7 +26,10 @@ export const sessionMiddleware = session({
   cookie: {
     httpOnly: true,
     secure: env.isProd, // ส่งผ่าน HTTPS เท่านั้นตอน production
-    sameSite: 'lax', // กัน CSRF จากเว็บอื่น แต่ยังกดลิงก์เข้ามาได้ปกติ
+    // dev: frontend เรียกผ่าน Vite proxy เป็น same-origin จึงใช้ 'lax' ได้และปลอดภัยกว่า
+    // prod: frontend (เช่น Render static site) กับ backend อยู่คนละโดเมนกันจริง ๆ
+    // ต้องใช้ 'none' (คู่กับ secure:true เสมอ) ไม่งั้น browser จะไม่ส่ง cookie ข้าม origin เลย
+    sameSite: env.isProd ? 'none' : 'lax',
     maxAge: env.sessionMaxAgeMs,
     path: '/',
   },
