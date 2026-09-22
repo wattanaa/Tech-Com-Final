@@ -1,6 +1,6 @@
 import { useRef, useState, type MouseEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Trash2, UploadCloud } from 'lucide-react';
+import { Trash2, UploadCloud, Youtube } from 'lucide-react';
 import { Modal } from './Modal';
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/feedback';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useCropUploadQueue } from '@/hooks/admin/useCropUploadQueue';
-import { listMedia, removeMedia, uploadMedia } from '@/api/admin/media';
+import { listMedia, removeMedia, uploadMedia, addYoutubeVideo } from '@/api/admin/media';
 import { ApiClientError } from '@/api/client';
 import { resolveMediaUrl, isVideoMime } from '@/utils/media';
 import type { AdminMedia } from '@/types/adminContent';
@@ -39,7 +39,10 @@ export function MediaPickerModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [youtubeUrl, setYoutubeUrl] = useState('');
   const debouncedSearch = useDebounce(search);
+  // แสดงช่องวางลิงก์ YouTube เฉพาะจุดที่รับวิดีโอได้ — ไม่ให้กระทบ picker แบบรูปภาพอย่างเดียวเดิม
+  const acceptsVideo = accept.includes('video');
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'media', 'picker', page, debouncedSearch],
@@ -61,6 +64,17 @@ export function MediaPickerModal({
   });
 
   const cropQueue = useCropUploadQueue((readyFiles) => uploadMutation.mutate(readyFiles));
+
+  const youtubeMutation = useMutation({
+    mutationFn: (url: string) => addYoutubeVideo(url),
+    onSuccess: (media) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'media'] });
+      toast.success('เพิ่มวิดีโอ YouTube สำเร็จ');
+      setYoutubeUrl('');
+      onSelect(media); // ตั้งใจเลือกให้ทันที ต่างจากอัปโหลดไฟล์ปกติที่ต้องกดเลือกเองจากกริด
+    },
+    onError: (err) => toast.error(err instanceof ApiClientError ? err.message : 'เพิ่มวิดีโอไม่สำเร็จ'),
+  });
 
   const removeMutation = useMutation({
     mutationFn: (id: string) => removeMedia(id),
@@ -124,6 +138,41 @@ export function MediaPickerModal({
             อัปโหลด
           </Button>
         </div>
+
+        {acceptsVideo && (
+          // ตั้งใจไม่ใช้ <form> ตรงนี้ — MediaPickerModal มักถูกเปิดซ้อนอยู่ใน <form> ของ
+          // ResourceForm อีกที (ผ่าน MediaPickerField) แม้ Modal จะ portal ไป document.body
+          // แต่ React synthetic event ยังส่ง submit event ขึ้นไปตาม component tree เดิม ทำให้
+          // form นอกสุด submit/ปิดตามไปด้วยถ้าใช้ type="submit" ที่นี่ — ใช้ปุ่มกดตรงๆ แทน
+          <div className="flex items-center gap-2">
+            <div className="glass flex flex-1 items-center gap-2 rounded-sm px-3 py-2">
+              <Youtube className="size-4 shrink-0 text-danger" aria-hidden />
+              <input
+                type="url"
+                value={youtubeUrl}
+                onChange={(e) => setYoutubeUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && youtubeUrl.trim()) {
+                    e.preventDefault();
+                    youtubeMutation.mutate(youtubeUrl.trim());
+                  }
+                }}
+                placeholder="วางลิงก์ YouTube ที่นี่ (เช่น https://www.youtube.com/watch?v=…)"
+                className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-ink-subtle"
+              />
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              isLoading={youtubeMutation.isPending}
+              disabled={!youtubeUrl.trim()}
+              onClick={() => youtubeMutation.mutate(youtubeUrl.trim())}
+            >
+              เพิ่ม
+            </Button>
+          </div>
+        )}
 
         {isLoading ? (
           <Spinner />

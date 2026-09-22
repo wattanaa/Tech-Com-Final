@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { ArrowRight, Cpu, GraduationCap, Sparkles } from 'lucide-react';
 import type { HomepageSection } from '@/types';
 import { fadeUp, stagger } from '@/animations/variants';
-import { resolveMediaUrl, isVideoMime } from '@/utils/media';
+import { resolveMediaUrl, isVideoMime, isYoutubeMedia, getYoutubeEmbedUrl } from '@/utils/media';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 interface HeroConfig {
@@ -25,11 +25,27 @@ export function HeroSection({ section }: { section: HomepageSection }) {
   const primary = c.primaryCta ?? { label: 'ดูหลักสูตร', href: '/programs' };
   const secondary = c.secondaryCta ?? { label: 'เกี่ยวกับแผนก', href: '/about' };
   const reducedMotion = useReducedMotion();
-  const bgSrc = resolveMediaUrl(c.backgroundMedia?.url);
+  const bgIsYoutube = isYoutubeMedia(c.backgroundMedia?.mimeType);
+  const bgYoutubeEmbed =
+    bgIsYoutube && c.backgroundMedia?.url ? getYoutubeEmbedUrl(c.backgroundMedia.url, { background: !reducedMotion }) : null;
+  const bgSrc = bgIsYoutube ? null : resolveMediaUrl(c.backgroundMedia?.url);
   const bgIsVideo = isVideoMime(c.backgroundMedia?.mimeType);
+  const hasBackground = Boolean(bgSrc || bgYoutubeEmbed);
 
   return (
-    <section className={`relative overflow-hidden ${bgSrc ? 'min-h-[420px]' : ''}`}>
+    <section className={`relative overflow-hidden ${hasBackground ? 'min-h-[420px]' : ''}`}>
+      {bgYoutubeEmbed && (
+        <div className="absolute inset-0 overflow-hidden" aria-hidden>
+          {/* วาง iframe เกินขนาดแล้วครอปด้วย overflow-hidden — เลียนแบบ object-fit:cover ที่ iframe ทำเองไม่ได้ */}
+          <iframe
+            src={bgYoutubeEmbed}
+            title=""
+            allow="autoplay; encrypted-media"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[56.25vw] min-h-full w-[177.78vh] min-w-full -translate-x-1/2 -translate-y-1/2"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-canvas/70 via-canvas/60 to-canvas" />
+        </div>
+      )}
       {bgSrc && (
         <div className="absolute inset-0" aria-hidden>
           {bgIsVideo ? (

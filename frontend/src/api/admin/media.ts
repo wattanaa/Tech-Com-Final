@@ -1,4 +1,4 @@
-import { apiClient, del, patch } from '../client';
+import { apiClient, del, patch, post } from '../client';
 import type { AdminMedia } from '@/types/adminContent';
 import type { Paginated } from '@/types';
 
@@ -41,3 +41,5 @@ export async function uploadMedia(files: File[], folder?: string): Promise<Uploa
 
 export const updateMediaAlt = (id: string, alt: string) => patch<AdminMedia>(`/admin/media/${id}`, { alt });
 export const removeMedia = (id: string) => del(`/admin/media/${id}`);
+/** เพิ่มวิดีโอด้วยลิงก์ YouTube แทนการอัปโหลดไฟล์ — ไม่มีการเก็บไฟล์จริง */
+export const addYoutubeVideo = (url: string) => post<AdminMedia>('/admin/media/external-video', { url });

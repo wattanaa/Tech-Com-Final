@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ImageOff } from 'lucide-react';
 import type { Media } from '@/types';
 import { cn } from '@/utils/cn';
-import { resolveMediaUrl, isVideoMime } from '@/utils/media';
+import { resolveMediaUrl, isVideoMime, isYoutubeMedia, getYoutubeEmbedUrl } from '@/utils/media';
 
 /**
  * แสดงรูปจาก Media พร้อม lazy loading และ fallback เป็นพื้นไล่สีน้ำเงินเมื่อไม่มีรูป
@@ -22,9 +22,28 @@ export function MediaImage({
 }) {
   const [failed, setFailed] = useState(false);
   const isVideo = isVideoMime(media?.mimeType);
+  const isYoutube = isYoutubeMedia(media?.mimeType);
   // วิดีโอไม่มี thumbnailUrl (ไม่มี ffmpeg ตัด poster ให้) — ใช้ url จริงเสมอ ให้เบราว์เซอร์
-  // แสดงเฟรมแรกเองผ่าน preload="metadata" แทน
+  // แสดงเฟรมแรกเองผ่าน preload="metadata" แทน — ส่วน YouTube ใช้ thumbnailUrl (jpg จาก YouTube CDN)
+  // ได้ตามปกติตอนเป็น thumbnail เล็กๆ อยู่แล้ว ไม่ต้อง handle แยก
   const src = resolveMediaUrl(isVideo ? media?.url : thumb ? media?.thumbnailUrl ?? media?.url : media?.url);
+
+  // แสดงเป็น iframe ฝัง YouTube เฉพาะตอนแสดงเต็มขนาด (thumb=false) — ในกริดเล็กๆ ใช้ thumbnailUrl
+  // เป็นรูปนิ่งพอ ไม่งั้น player ของ YouTube จะไปโผล่แน่นในช่องเล็กจนใช้งานไม่ได้
+  if (isYoutube && !thumb) {
+    const embedUrl = media?.url ? getYoutubeEmbedUrl(media.url) : null;
+    if (embedUrl) {
+      return (
+        <iframe
+          src={embedUrl}
+          title={alt}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className={cn('aspect-video h-full w-full', className)}
+        />
+      );
+    }
+  }
 
   if (!src || failed) {
     return (

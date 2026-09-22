@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import type { GalleryImage } from '@/types';
-import { resolveMediaUrl, isVideoMime } from '@/utils/media';
+import { resolveMediaUrl, isVideoMime, isYoutubeMedia, getYoutubeEmbedUrl } from '@/utils/media';
 
 /** หน้าต่างดูภาพขยาย — รองรับปุ่มถัดไป/ก่อนหน้า และคีย์บอร์ด (← → Esc) */
 export function Lightbox({
@@ -90,7 +90,15 @@ export function Lightbox({
             animate={{ scale: 1, opacity: 1 }}
             onClick={(e) => e.stopPropagation()}
           >
-            {isVideoMime(current.media.mimeType) ? (
+            {isYoutubeMedia(current.media.mimeType) ? (
+              <iframe
+                src={getYoutubeEmbedUrl(current.media.url) ?? undefined}
+                title={current.caption ?? 'วิดีโอ YouTube'}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="aspect-video max-h-[80vh] w-[min(90vw,960px)] rounded-lg"
+              />
+            ) : isVideoMime(current.media.mimeType) ? (
               <video
                 src={resolveMediaUrl(current.media.url)}
                 controls

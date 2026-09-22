@@ -41,6 +41,57 @@ const VIDEO_EXTENSION: Record<string, string> = {
 const THUMBNAIL_WIDTH = 480;
 const MAX_WIDTH = 2000;
 
+/**
+ * mimeType พิเศษสำหรับวิดีโอ YouTube ที่ฝังด้วยลิงก์ (ไม่มีไฟล์จริงเก็บอยู่)
+ * ตั้งใจไม่ให้ขึ้นต้นด้วย "video/" เพื่อไม่ให้ isVideoMime() ฝั่ง frontend หลงไปแสดงเป็น
+ * <video> element (เล่นลิงก์ YouTube ตรงๆ ด้วย <video> ไม่ได้) — ต้อง embed เป็น iframe แทน
+ */
+export const YOUTUBE_MIME = 'link/youtube';
+
+/** ดึง video id จากลิงก์ YouTube ทุกรูปแบบที่พบบ่อย — คืน null ถ้าไม่ใช่ลิงก์ YouTube */
+export function parseYoutubeId(url: string): string | null {
+  try {
+    const u = new URL(url.trim());
+    const host = u.hostname.replace(/^www\.|^m\./, '');
+    if (host === 'youtu.be') {
+      return u.pathname.slice(1).split('/')[0] || null;
+    }
+    if (host === 'youtube.com') {
+      if (u.pathname === '/watch') return u.searchParams.get('v');
+      const match = u.pathname.match(/^\/(embed|shorts)\/([^/]+)/);
+      if (match) return match[2] ?? null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/** เพิ่มวิดีโอ YouTube ด้วยลิงก์ — ไม่มีการอัปโหลด/ประมวลผลไฟล์ ใช้ thumbnail จาก YouTube CDN ตรงๆ */
+export async function saveExternalVideo(url: string, uploadedById: string) {
+  const videoId = parseYoutubeId(url);
+  if (!videoId) {
+    throw ApiError.badRequest('ลิงก์นี้ไม่ใช่ลิงก์ YouTube ที่ถูกต้อง — รองรับ youtube.com/watch, youtu.be, youtube.com/shorts');
+  }
+
+  const folder = 'external';
+  const filename = `${folder}/youtube-${videoId}-${randomUUID().slice(0, 8)}`;
+
+  return prisma.media.create({
+    data: {
+      filename,
+      originalName: `YouTube: ${videoId}`,
+      mimeType: YOUTUBE_MIME,
+      size: 0,
+      url: `https://www.youtube.com/watch?v=${videoId}`,
+      thumbnailUrl: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+      alt: 'วิดีโอ YouTube',
+      folder,
+      uploadedById,
+    },
+  });
+}
+
 export interface UploadedFile {
   originalname: string;
   mimetype: string;

@@ -8,7 +8,7 @@ import { uploadMiddleware } from '../middleware/upload.middleware.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { buildMeta, sendCreated, sendNoContent, sendSuccess } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
-import { deleteMedia, saveUpload, type UploadedFile } from '../services/media.service.js';
+import { deleteMedia, saveExternalVideo, saveUpload, type UploadedFile } from '../services/media.service.js';
 import { writeAuditLog } from '../services/audit.service.js';
 import { getSkip, listQuerySchema, type ListQuery } from '../utils/pagination.js';
 import { ROLE_LEVEL } from '../config/constants.js';
@@ -67,6 +67,26 @@ router.post(
     }
 
     sendCreated(res, { uploaded: saved, failed });
+  }),
+);
+
+/** POST /api/v1/admin/media/external-video — เพิ่มวิดีโอด้วยลิงก์ YouTube แทนการอัปโหลดไฟล์ */
+router.post(
+  '/external-video',
+  requirePermission('media:create'),
+  asyncHandler(async (req, res) => {
+    const url = String(req.body?.url ?? '').trim();
+    if (!url) throw ApiError.badRequest('กรุณาระบุลิงก์วิดีโอ');
+
+    const media = await saveExternalVideo(url, req.user!.id);
+    await writeAuditLog(req, {
+      action: 'CREATE',
+      entity: 'Media',
+      entityId: media.id,
+      note: 'เพิ่มวิดีโอ YouTube',
+      after: { url },
+    });
+    sendCreated(res, media);
   }),
 );
 
