@@ -1,0 +1,47 @@
+# ════════════════════════════════════════════════════════════════
+#  Fly.io config — Backend API
+#  ชื่อแอปต้อง unique ทั้ง Fly — ถ้า "tcom-api-rtc" ถูกใช้แล้ว ให้เปลี่ยนทั้งที่นี่
+#  และในค่า BACKEND_INTERNAL_HOST ของ frontend/fly.toml ให้ตรงกัน
+# ════════════════════════════════════════════════════════════════
+app = 'tcom-api-rtc'
+primary_region = 'sin'
+
+[build]
+
+[env]
+  NODE_ENV = 'production'
+  PORT = '4000'
+  SESSION_NAME = 'tcom.sid'
+  SESSION_MAX_AGE_HOURS = '8'
+  # SEED_MODE: core = เฉพาะข้อมูลแกนระบบ · demo = รวมข้อมูลตัวอย่าง · none = ไม่ seed
+  SEED_MODE = 'core'
+  SEED_ADMIN_EMAIL = 'admin@tcom.rtc.ac.th'
+  SEED_ADMIN_NAME = 'ผู้ดูแลระบบ'
+  # อนุญาตเฉพาะโดเมนจริงของ frontend — เปลี่ยนให้ตรงกับ URL ที่ Fly สร้างให้ตอน deploy frontend
+  CORS_ORIGIN = 'https://tcom-web-rtc.fly.dev'
+  # DATABASE_URL / SESSION_SECRET / SEED_ADMIN_PASSWORD ตั้งผ่าน `fly secrets set` เท่านั้น
+  # ห้ามใส่ในไฟล์นี้เพราะ fly.toml ถูก commit เข้า git
+
+# เก็บไฟล์อัปโหลดถาวรข้าม deploy (ต่างจาก Render free tier ที่ไฟล์หายทุกครั้งที่ redeploy)
+[[mounts]]
+  source = 'tcom_uploads'
+  destination = '/app/uploads'
+
+[http_service]
+  internal_port = 4000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = '30s'
+    interval = '30s'
+    method = 'GET'
+    timeout = '5s'
+    path = '/api/v1/health'
+
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1

@@ -40,7 +40,9 @@ export function createApp(): Express {
   app.use(
     cors({
       origin(origin, callback) {
-        if (!origin || env.corsOrigins.includes(origin)) return callback(null, true);
+        if (!origin || env.corsOrigins.includes('*') || env.corsOrigins.includes(origin)) {
+          return callback(null, true);
+        }
         callback(ApiError.forbidden('ไม่อนุญาตให้เรียกจากโดเมนนี้'));
       },
       credentials: true,

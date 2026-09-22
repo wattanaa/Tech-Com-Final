@@ -13,7 +13,9 @@ RUN apt-get update -y && apt-get install -y --no-install-recommends openssl \
   && rm -rf /var/lib/apt/lists/*
 
 COPY package.json ./
-RUN npm install
+# npm 10.x ที่มากับ image นี้มีบั๊ก arborist (Cannot read properties of null (reading 'edgesOut'))
+# กับ dependency tree ของโปรเจกต์นี้ — อัปเป็น npm 11 ก่อนติดตั้งเพื่อเลี่ยงปัญหา
+RUN npm install -g npm@11 && npm install
 
 COPY prisma ./prisma
 RUN npx prisma generate

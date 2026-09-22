@@ -1,0 +1,29 @@
+# ════════════════════════════════════════════════════════════════
+#  Fly.io config — Frontend (nginx + static build)
+#  ชื่อแอปต้อง unique ทั้ง Fly — ถ้า "tcom-web-rtc" ถูกใช้แล้ว ให้เปลี่ยนทั้งที่นี่
+#  และในค่า CORS_ORIGIN ของ backend/fly.toml ให้ตรงกัน
+# ════════════════════════════════════════════════════════════════
+app = 'tcom-web-rtc'
+primary_region = 'sin'
+
+[build]
+
+[env]
+  # ชื่อแอป backend + resolver ภายในของ Fly (6PN) — ทำให้ /api และ /uploads เป็น
+  # same-origin ผ่าน nginx proxy เหมือนตอน dev ไม่ต้องพึ่ง CORS เลย
+  # ถ้าเปลี่ยนชื่อแอป backend ใน backend/fly.toml ต้องแก้ตรงนี้ให้ตรงกันด้วย
+  BACKEND_INTERNAL_HOST = 'tcom-api-rtc.internal'
+  BACKEND_INTERNAL_PORT = '4000'
+  RESOLVER = '[fdaa::3]:53'
+
+[http_service]
+  internal_port = 80
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  memory = '256mb'
+  cpu_kind = 'shared'
+  cpus = 1
