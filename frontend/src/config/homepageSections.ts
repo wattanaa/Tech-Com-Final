@@ -34,6 +34,11 @@ const configFieldsByType: Record<SectionType, ResourceFormField[]> = {
     { name: 'secondaryCtaHref', label: 'ปุ่มรอง — ลิงก์', type: 'text' },
     { name: 'showGrid', label: 'แสดงลายกริดพื้นหลัง', type: 'checkbox' },
     { name: 'showGlow', label: 'แสดงแสงเรืองพื้นหลัง', type: 'checkbox' },
+    { name: 'statCardTitle', label: 'การ์ดลอย 1 — หัวข้อ', type: 'text' },
+    { name: 'statCardSubtitle', label: 'การ์ดลอย 1 — คำอธิบาย', type: 'text' },
+    { name: 'awardCardTitle', label: 'การ์ดลอย 2 — หัวข้อ', type: 'text' },
+    { name: 'awardCardNumber', label: 'การ์ดลอย 2 — ตัวเลข', type: 'text' },
+    { name: 'awardCardSuffix', label: 'การ์ดลอย 2 — ส่วนต่อท้ายตัวเลข', type: 'text' },
   ],
   STATISTICS: [{ name: 'animate', label: 'เล่นแอนิเมชันตัวเลขนับ', type: 'checkbox' }],
   ABOUT: [
@@ -122,6 +127,11 @@ const configShapeByType: Record<SectionType, z.ZodRawShape> = {
     secondaryCtaHref: z.string().trim().max(300).optional().or(z.literal('')),
     showGrid: z.boolean(),
     showGlow: z.boolean(),
+    statCardTitle: z.string().trim().max(60).optional().or(z.literal('')),
+    statCardSubtitle: z.string().trim().max(100).optional().or(z.literal('')),
+    awardCardTitle: z.string().trim().max(60).optional().or(z.literal('')),
+    awardCardNumber: z.string().trim().max(20).optional().or(z.literal('')),
+    awardCardSuffix: z.string().trim().max(20).optional().or(z.literal('')),
   },
   STATISTICS: { animate: z.boolean() },
   ABOUT: { layout: z.enum(['split', 'stacked']) },
@@ -166,6 +176,11 @@ export function sectionToFormDefaults(section: {
     primaryCtaHref: primaryCta?.href ?? '',
     secondaryCtaLabel: secondaryCta?.label ?? '',
     secondaryCtaHref: secondaryCta?.href ?? '',
+    statCardTitle: c.statCardTitle ?? '',
+    statCardSubtitle: c.statCardSubtitle ?? '',
+    awardCardTitle: c.awardCardTitle ?? '',
+    awardCardNumber: c.awardCardNumber ?? '',
+    awardCardSuffix: c.awardCardSuffix ?? '',
   };
 }
 

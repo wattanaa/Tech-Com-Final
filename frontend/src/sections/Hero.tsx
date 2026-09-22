@@ -16,6 +16,11 @@ interface HeroConfig {
   showGlow?: boolean;
   /** เติมโดย backend จาก backgroundImageId (ดู withHeroBackgroundMedia ใน homepage.routes.ts) */
   backgroundMedia?: { url: string; mimeType: string } | null;
+  statCardTitle?: string;
+  statCardSubtitle?: string;
+  awardCardTitle?: string;
+  awardCardNumber?: string;
+  awardCardSuffix?: string;
 }
 
 /** ส่วนหัวหน้าแรก — ข้อความหลัก ปุ่มเรียกดำเนินการ และภาพประกอบกระจกลอย */
@@ -24,6 +29,11 @@ export function HeroSection({ section }: { section: HomepageSection }) {
   const heading = c.heading ?? 'สร้างทักษะดิจิทัล สร้างนวัตกรรม สร้างอนาคต';
   const primary = c.primaryCta ?? { label: 'ดูหลักสูตร', href: '/programs' };
   const secondary = c.secondaryCta ?? { label: 'เกี่ยวกับแผนก', href: '/about' };
+  const statCardTitle = c.statCardTitle || 'ผู้สำเร็จการศึกษา';
+  const statCardSubtitle = c.statCardSubtitle || 'ย้อนหลัง 6 ปีการศึกษา';
+  const awardCardTitle = c.awardCardTitle || 'รางวัลระดับชาติ';
+  const awardCardNumber = c.awardCardNumber || '18';
+  const awardCardSuffix = c.awardCardSuffix || '+3';
   const reducedMotion = useReducedMotion();
   const bgIsYoutube = isYoutubeMedia(c.backgroundMedia?.mimeType);
   const bgYoutubeEmbed =
@@ -133,8 +143,8 @@ export function HeroSection({ section }: { section: HomepageSection }) {
                 <GraduationCap className="size-4" aria-hidden />
               </span>
               <div>
-                <p className="font-display text-[13px] font-semibold">ผู้สำเร็จการศึกษา</p>
-                <p className="text-[10.5px] text-ink-subtle">ย้อนหลัง 6 ปีการศึกษา</p>
+                <p className="font-display text-[13px] font-semibold">{statCardTitle}</p>
+                <p className="text-[10.5px] text-ink-subtle">{statCardSubtitle}</p>
               </div>
             </div>
             <div className="flex h-24 items-end gap-2">
@@ -146,9 +156,12 @@ export function HeroSection({ section }: { section: HomepageSection }) {
           <FloatingCard className="left-0 bottom-2 w-44" delay={0.5}>
             <div className="flex items-center gap-2">
               <Cpu className="size-4 text-brand-500" aria-hidden />
-              <p className="font-display text-[12px] font-semibold">รางวัลระดับชาติ</p>
+              <p className="font-display text-[12px] font-semibold">{awardCardTitle}</p>
             </div>
-            <p className="mt-1 font-display text-2xl font-bold">18<span className="ml-1.5 text-[11px] font-medium text-success">+3</span></p>
+            <p className="mt-1 font-display text-2xl font-bold">
+              {awardCardNumber}
+              {awardCardSuffix && <span className="ml-1.5 text-[11px] font-medium text-success">{awardCardSuffix}</span>}
+            </p>
           </FloatingCard>
         </motion.div>
       </div>
