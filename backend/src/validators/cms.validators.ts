@@ -26,6 +26,7 @@ export const sectionConfigSchema = z.discriminatedUnion('type', [
     backgroundImageId: cuid.nullish(),
     showGrid: z.boolean().default(true),
     showGlow: z.boolean().default(true),
+    showFloatingCards: z.boolean().default(true),
     statCardTitle: optionalText(60),
     statCardSubtitle: optionalText(100),
     awardCardTitle: optionalText(60),

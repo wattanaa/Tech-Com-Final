@@ -14,6 +14,7 @@ interface HeroConfig {
   secondaryCta?: { label: string; href: string };
   showGrid?: boolean;
   showGlow?: boolean;
+  showFloatingCards?: boolean;
   /** เติมโดย backend จาก backgroundImageId (ดู withHeroBackgroundMedia ใน homepage.routes.ts) */
   backgroundMedia?: { url: string; mimeType: string } | null;
   statCardTitle?: string;
@@ -130,6 +131,7 @@ export function HeroSection({ section }: { section: HomepageSection }) {
           </motion.div>
         </motion.div>
 
+        {c.showFloatingCards !== false && (
         <motion.div
           className="relative hidden h-[320px] lg:block"
           initial={{ opacity: 0, scale: 0.96 }}
@@ -164,6 +166,7 @@ export function HeroSection({ section }: { section: HomepageSection }) {
             </p>
           </FloatingCard>
         </motion.div>
+        )}
       </div>
     </section>
   );

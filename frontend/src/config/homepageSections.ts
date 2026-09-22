@@ -34,6 +34,7 @@ const configFieldsByType: Record<SectionType, ResourceFormField[]> = {
     { name: 'secondaryCtaHref', label: 'ปุ่มรอง — ลิงก์', type: 'text' },
     { name: 'showGrid', label: 'แสดงลายกริดพื้นหลัง', type: 'checkbox' },
     { name: 'showGlow', label: 'แสดงแสงเรืองพื้นหลัง', type: 'checkbox' },
+    { name: 'showFloatingCards', label: 'แสดงการ์ดลอยตกแต่ง (2 ใบ)', type: 'checkbox' },
     { name: 'statCardTitle', label: 'การ์ดลอย 1 — หัวข้อ', type: 'text' },
     { name: 'statCardSubtitle', label: 'การ์ดลอย 1 — คำอธิบาย', type: 'text' },
     { name: 'awardCardTitle', label: 'การ์ดลอย 2 — หัวข้อ', type: 'text' },
@@ -127,6 +128,7 @@ const configShapeByType: Record<SectionType, z.ZodRawShape> = {
     secondaryCtaHref: z.string().trim().max(300).optional().or(z.literal('')),
     showGrid: z.boolean(),
     showGlow: z.boolean(),
+    showFloatingCards: z.boolean(),
     statCardTitle: z.string().trim().max(60).optional().or(z.literal('')),
     statCardSubtitle: z.string().trim().max(100).optional().or(z.literal('')),
     awardCardTitle: z.string().trim().max(60).optional().or(z.literal('')),
@@ -176,6 +178,9 @@ export function sectionToFormDefaults(section: {
     primaryCtaHref: primaryCta?.href ?? '',
     secondaryCtaLabel: secondaryCta?.label ?? '',
     secondaryCtaHref: secondaryCta?.href ?? '',
+    // undefined ต้องตีความว่า "แสดง" (ค่าเริ่มต้นเดิมของโค้ดก่อนมีสวิตช์นี้) ไม่งั้น checkbox
+    // จะขึ้นไม่ติ๊กทั้งที่การ์ดยังโชว์อยู่จริงบนหน้าเว็บ ทำให้แอดมินสับสน
+    showFloatingCards: c.showFloatingCards ?? true,
     statCardTitle: c.statCardTitle ?? '',
     statCardSubtitle: c.statCardSubtitle ?? '',
     awardCardTitle: c.awardCardTitle ?? '',
