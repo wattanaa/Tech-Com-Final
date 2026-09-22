@@ -13,6 +13,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useCropUploadQueue } from '@/hooks/admin/useCropUploadQueue';
 import { listMedia, removeMedia, uploadMedia } from '@/api/admin/media';
 import { ApiClientError } from '@/api/client';
+import { resolveMediaUrl } from '@/utils/media';
 import type { AdminMedia } from '@/types/adminContent';
 
 /** กล่องเลือกรูปภาพจากคลังสื่อ — ใช้ซ้ำได้จากทุก field รูปภาพในฟอร์มหลังบ้าน */
@@ -125,7 +126,7 @@ export function MediaPickerModal({
                   className="block size-full"
                   title={m.originalName}
                 >
-                  <img src={m.thumbnailUrl ?? m.url} alt={m.alt ?? ''} className="size-full object-cover transition-transform group-hover:scale-105" />
+                  <img src={resolveMediaUrl(m.thumbnailUrl ?? m.url)} alt={m.alt ?? ''} className="size-full object-cover transition-transform group-hover:scale-105" />
                 </button>
                 <button
                   type="button"

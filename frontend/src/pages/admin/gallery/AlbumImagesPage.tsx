@@ -13,6 +13,7 @@ import { useConfirm } from '@/components/admin/ConfirmDialog';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useResourceAdmin } from '@/hooks/admin/useResourceAdmin';
 import { ApiClientError } from '@/api/client';
+import { resolveMediaUrl } from '@/utils/media';
 import {
   addAlbumImages,
   listAlbumImages,
@@ -134,7 +135,7 @@ export function AlbumImagesPage() {
             <GlassCard padding="sm" className="flex items-center gap-3">
               <DragHandle {...handle} />
               <img
-                src={image.media.thumbnailUrl ?? image.media.url}
+                src={resolveMediaUrl(image.media.thumbnailUrl ?? image.media.url)}
                 alt={image.media.alt ?? ''}
                 className="size-14 shrink-0 rounded-sm object-cover"
               />

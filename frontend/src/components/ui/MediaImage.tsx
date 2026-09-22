@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ImageOff } from 'lucide-react';
 import type { Media } from '@/types';
 import { cn } from '@/utils/cn';
+import { resolveMediaUrl } from '@/utils/media';
 
 /**
  * แสดงรูปจาก Media พร้อม lazy loading และ fallback เป็นพื้นไล่สีน้ำเงินเมื่อไม่มีรูป
@@ -20,7 +21,7 @@ export function MediaImage({
   thumb?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
-  const src = thumb ? media?.thumbnailUrl ?? media?.url : media?.url;
+  const src = resolveMediaUrl(thumb ? media?.thumbnailUrl ?? media?.url : media?.url);
 
   if (!src || failed) {
     return (

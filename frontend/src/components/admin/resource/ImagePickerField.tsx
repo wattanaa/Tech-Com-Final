@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ImageOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { MediaPickerModal } from '../MediaPickerModal';
+import { resolveMediaUrl } from '@/utils/media';
 import type { AdminMedia } from '@/types/adminContent';
 
 export interface ImagePreview {
@@ -37,7 +38,7 @@ export function ImagePickerField({
     <div className="flex items-center gap-3">
       <div className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-sm border border-hairline/20 bg-surface/60">
         {preview ? (
-          <img src={preview.thumbnailUrl ?? preview.url} alt="" className="size-full object-cover" />
+          <img src={resolveMediaUrl(preview.thumbnailUrl ?? preview.url)} alt="" className="size-full object-cover" />
         ) : (
           <ImageOff className="size-5 text-ink-subtle" aria-hidden />
         )}

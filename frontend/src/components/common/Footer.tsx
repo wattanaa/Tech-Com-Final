@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Cpu, Facebook, Youtube, MapPin, Phone, Mail } from 'lucide-react';
 import { useSettings } from '@/hooks/useSiteData';
 import { COLLEGE_NAME, SITE_NAME } from '@/constants/site';
+import { resolveMediaUrl } from '@/utils/media';
 
 /** ส่วนท้ายเว็บไซต์ — เนื้อหาทั้งหมดอ่านจากการตั้งค่าที่แก้ได้ในระบบหลังบ้าน */
 export function Footer() {
@@ -24,7 +25,7 @@ export function Footer() {
         <div className="lg:col-span-2">
           <div className="flex items-center gap-2.5">
             {logo ? (
-              <img src={logo.thumbnailUrl ?? logo.url} alt={logo.alt ?? SITE_NAME} className="size-10 shrink-0 rounded-sm object-contain" />
+              <img src={resolveMediaUrl(logo.thumbnailUrl ?? logo.url)} alt={logo.alt ?? SITE_NAME} className="size-10 shrink-0 rounded-sm object-contain" />
             ) : (
               <span className="grid size-10 place-items-center rounded-sm bg-gradient-to-br from-brand-400 to-brand-700 text-white shadow-glow">
                 <Cpu className="size-5" aria-hidden />

@@ -6,6 +6,7 @@ import { useNavigation, useSettings } from '@/hooks/useSiteData';
 import { COLLEGE_NAME, SITE_NAME } from '@/constants/site';
 import { ThemeToggle } from './ThemeToggle';
 import { cn } from '@/utils/cn';
+import { resolveMediaUrl } from '@/utils/media';
 
 /** แถบนำทางบนสุด — sticky + glassmorphism, เมนูบนจอใหญ่ / drawer บนมือถือ */
 export function Navbar() {
@@ -43,7 +44,7 @@ export function Navbar() {
         <Link to="/" className="flex shrink-0 items-center gap-2.5">
           {logo ? (
             <img
-              src={logo.thumbnailUrl ?? logo.url}
+              src={resolveMediaUrl(logo.thumbnailUrl ?? logo.url)}
               alt={logo.alt ?? SITE_NAME}
               className="size-9 shrink-0 rounded-sm object-contain"
             />

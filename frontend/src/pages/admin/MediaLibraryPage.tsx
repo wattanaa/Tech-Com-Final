@@ -14,6 +14,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useCropUploadQueue } from '@/hooks/admin/useCropUploadQueue';
 import { listMedia, removeMedia, uploadMedia } from '@/api/admin/media';
+import { resolveMediaUrl } from '@/utils/media';
 import { ApiClientError } from '@/api/client';
 
 const FILE_SIZE_UNITS = ['B', 'KB', 'MB', 'GB'];
@@ -164,7 +165,7 @@ export function MediaLibraryPage() {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
           {data.items.map((m) => (
             <div key={m.id} className="group relative aspect-square overflow-hidden rounded-lg border border-hairline/15">
-              <img src={m.thumbnailUrl ?? m.url} alt={m.alt ?? m.originalName} className="size-full object-cover" />
+              <img src={resolveMediaUrl(m.thumbnailUrl ?? m.url)} alt={m.alt ?? m.originalName} className="size-full object-cover" />
               <div className="absolute inset-x-0 bottom-0 truncate bg-black/60 px-2 py-1 text-[11px] text-white opacity-0 transition-opacity group-hover:opacity-100">
                 {m.originalName} · {formatSize(m.size)}
               </div>
