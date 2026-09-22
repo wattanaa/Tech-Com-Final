@@ -17,6 +17,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { Badge } from '@/components/ui/Badge';
 import { StatCounter } from '@/components/ui/StatCounter';
 import { ErrorState, Spinner } from '@/components/ui/feedback';
+import { ACTION_LABEL, entityLabel } from '@/config/audit';
 
 const STATUS_LABEL: Record<DashboardStats['recentNews'][number]['status'], string> = {
   DRAFT: 'ฉบับร่าง',
@@ -24,17 +25,6 @@ const STATUS_LABEL: Record<DashboardStats['recentNews'][number]['status'], strin
   APPROVED: 'อนุมัติแล้ว',
   PUBLISHED: 'เผยแพร่แล้ว',
   ARCHIVED: 'เก็บถาวร',
-};
-
-const ACTION_LABEL: Record<DashboardStats['recentActivity'][number]['action'], string> = {
-  CREATE: 'สร้าง',
-  UPDATE: 'แก้ไข',
-  DELETE: 'ลบ',
-  LOGIN: 'เข้าสู่ระบบ',
-  LOGOUT: 'ออกจากระบบ',
-  PUBLISH: 'เผยแพร่',
-  UNPUBLISH: 'ยกเลิกเผยแพร่',
-  RESTORE: 'กู้คืน',
 };
 
 function StatCard({
@@ -180,7 +170,7 @@ export function DashboardPage() {
                   {data.recentActivity.map((a) => (
                     <li key={a.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                       <span className="text-ink">
-                        {a.user?.name ?? 'ระบบ'} {ACTION_LABEL[a.action]} {a.entity}
+                        {a.user?.name ?? 'ระบบ'} {ACTION_LABEL[a.action]}{ACTION_LABEL[a.action].endsWith('ระบบ') ? '' : `${entityLabel(a.entity)}`}
                       </span>
                       <span className="shrink-0 text-xs text-ink-subtle">
                         {new Date(a.createdAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}
