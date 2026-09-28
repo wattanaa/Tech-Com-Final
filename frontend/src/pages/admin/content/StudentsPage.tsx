@@ -1,8 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
+import { FileSpreadsheet } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import { useResourceAdmin } from '@/hooks/admin/useResourceAdmin';
 import { ResourceListPage } from '@/components/admin/ResourceListPage';
+import { ImportModal } from '@/components/admin/ImportModal';
+import { importStudents, downloadStudentImportTemplate } from '@/api/admin/import';
 import type { ResourceFormField } from '@/components/admin/resource/ResourceForm';
 import type { DataTableColumn } from '@/components/admin/resource/DataTable';
 import type { AdminProgram, AdminStudent } from '@/types/adminContent';
@@ -38,6 +43,8 @@ export function StudentsPage() {
   const { useList, useCreate, useUpdate, useRemove } = useResourceAdmin<AdminStudent, StudentInput>('students');
   const programsAdmin = useResourceAdmin<AdminProgram, never>('programs');
   const programsQuery = programsAdmin.useList({ limit: 100 });
+  const [importOpen, setImportOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const formFields = useMemo(() => {
     const programOptions = (programsQuery.data?.items ?? []).map((p) => ({ value: p.id, label: `${p.code} — ${p.name}` }));
@@ -56,32 +63,49 @@ export function StudentsPage() {
   }, [programsQuery.data]);
 
   return (
-    <ResourceListPage<AdminStudent, StudentInput>
-      title="นักศึกษา"
-      description="จัดการข้อมูลนักศึกษาที่แสดงบนเว็บไซต์"
-      createLabel="เพิ่มนักศึกษา"
-      searchPlaceholder="ค้นหารหัส ชื่อนักศึกษา…"
-      emptyMessage="ยังไม่มีข้อมูลนักศึกษา"
-      columns={columns}
-      formFields={formFields}
-      formSchema={studentSchema}
-      toFormDefaults={(s) => ({
-        studentCode: s?.studentCode ?? '',
-        prefix: s?.prefix ?? '',
-        firstName: s?.firstName ?? '',
-        lastName: s?.lastName ?? '',
-        level: s?.level ?? '',
-        classRoom: s?.classRoom ?? '',
-        year: s?.year ?? new Date().getFullYear() + 543,
-        programId: s?.program?.id ?? '',
-        photoId: s?.photo?.id ?? '',
-        isVisible: s?.isVisible ?? true,
-      })}
-      useList={useList}
-      useCreate={useCreate}
-      useUpdate={useUpdate}
-      useRemove={useRemove}
-      getItemLabel={(s) => `${s.prefix}${s.firstName} ${s.lastName}`}
-    />
+    <>
+      <ResourceListPage<AdminStudent, StudentInput>
+        title="นักศึกษา"
+        description="จัดการข้อมูลนักศึกษาที่แสดงบนเว็บไซต์"
+        createLabel="เพิ่มนักศึกษา"
+        searchPlaceholder="ค้นหารหัส ชื่อนักศึกษา…"
+        emptyMessage="ยังไม่มีข้อมูลนักศึกษา"
+        columns={columns}
+        formFields={formFields}
+        formSchema={studentSchema}
+        toFormDefaults={(s) => ({
+          studentCode: s?.studentCode ?? '',
+          prefix: s?.prefix ?? '',
+          firstName: s?.firstName ?? '',
+          lastName: s?.lastName ?? '',
+          level: s?.level ?? '',
+          classRoom: s?.classRoom ?? '',
+          year: s?.year ?? new Date().getFullYear() + 543,
+          programId: s?.program?.id ?? '',
+          photoId: s?.photo?.id ?? '',
+          isVisible: s?.isVisible ?? true,
+        })}
+        useList={useList}
+        useCreate={useCreate}
+        useUpdate={useUpdate}
+        useRemove={useRemove}
+        getItemLabel={(s) => `${s.prefix}${s.firstName} ${s.lastName}`}
+        headerActions={
+          <Button variant="outline" size="sm" leftIcon={<FileSpreadsheet className="size-4" aria-hidden />} onClick={() => setImportOpen(true)}>
+            นำเข้าจาก Excel
+          </Button>
+        }
+      />
+
+      <ImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        title="นำเข้านักศึกษาจาก Excel"
+        description="เพิ่มรายชื่อนักศึกษาใหม่จากไฟล์ Excel — ไม่แก้ไขข้อมูลเดิมที่มีอยู่แล้ว ระบุรหัสหลักสูตรให้ตรงกับที่มีอยู่ในระบบ"
+        onImport={importStudents}
+        onDownloadTemplate={downloadStudentImportTemplate}
+        onImported={() => queryClient.invalidateQueries({ queryKey: ['admin', 'students', 'list'] })}
+      />
+    </>
   );
 }

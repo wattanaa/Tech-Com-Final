@@ -18,7 +18,7 @@ const teacherShape = {
   lastName: thaiText('นามสกุล', 1, 100),
   position: thaiText('ตำแหน่ง', 1, 150),
   academicRank: optionalText(150),
-  type: z.enum(['HEAD', 'TEACHER', 'STAFF']).default('TEACHER'),
+  typeId: optionalCuid,
   specialties: stringArray(10),
   bio: z.string().trim().max(3_000).nullish(),
   email: emailField.nullish().or(z.literal('')),

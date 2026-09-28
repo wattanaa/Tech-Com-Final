@@ -1,29 +1,27 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { TeacherType } from '@/types';
-import { getTeachers } from '@/api/public';
+import { getTeachers, getCategories } from '@/api/public';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { PageHero } from '@/components/common/PageHero';
 import { ResultGrid } from '@/components/ResultGrid';
 import { TeacherCard } from '@/components/cards';
 import { cn } from '@/utils/cn';
 
-const TABS: { key: 'ALL' | TeacherType; label: string }[] = [
-  { key: 'ALL', label: 'ทั้งหมด' },
-  { key: 'HEAD', label: 'หัวหน้าแผนก' },
-  { key: 'TEACHER', label: 'ครูผู้สอน' },
-  { key: 'STAFF', label: 'บุคลากร' },
-];
-
-/** หน้ารวมบุคลากร — กรองตามประเภท (หัวหน้าแผนก / ครู / บุคลากร) */
+/** หน้ารวมบุคลากร — กรองตามประเภทที่ผู้ดูแลระบบตั้งค่าไว้ (จัดการได้จากหน้า Admin) */
 export default function TeachersPage() {
   useDocumentTitle('ครูและบุคลากร');
-  const [tab, setTab] = useState<'ALL' | TeacherType>('ALL');
+  const [tab, setTab] = useState<'ALL' | string>('ALL');
 
   const query = useQuery({ queryKey: ['teachers', 'all'], queryFn: () => getTeachers({ limit: 100 }) });
+  const typesQuery = useQuery({
+    queryKey: ['categories', 'teacher-types'],
+    queryFn: () => getCategories({ type: 'TEACHER', limit: 100 }),
+  });
+
+  const tabs = [{ key: 'ALL', label: 'ทั้งหมด' }, ...(typesQuery.data?.items ?? []).map((t) => ({ key: t.id, label: t.name }))];
 
   const filtered = query.data
-    ? { ...query.data, items: query.data.items.filter((t) => tab === 'ALL' || t.type === tab) }
+    ? { ...query.data, items: query.data.items.filter((t) => tab === 'ALL' || t.type?.id === tab) }
     : query.data;
 
   return (
@@ -34,7 +32,7 @@ export default function TeachersPage() {
         breadcrumb={[{ label: 'บุคลากร' }]}
       >
         <div className="glass inline-flex gap-1 rounded-lg p-1">
-          {TABS.map((t) => (
+          {tabs.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}

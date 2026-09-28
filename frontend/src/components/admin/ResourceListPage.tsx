@@ -43,6 +43,8 @@ interface ResourceListPageProps<TItem extends ResourceRow, TInput extends FieldV
   deleteWarning?: string;
   /** ช่องกรองเพิ่มเติมข้าง search — เช่น dropdown ประเภท */
   extraToolbar?: ReactNode;
+  /** ปุ่ม/องค์ประกอบเพิ่มเติมข้างปุ่ม "เพิ่มใหม่" บนหัวข้อ — เช่น ปุ่มนำเข้าจาก Excel */
+  headerActions?: ReactNode;
 }
 
 /**
@@ -66,6 +68,7 @@ export function ResourceListPage<TItem extends ResourceRow, TInput extends Field
   getItemLabel,
   deleteWarning,
   extraToolbar,
+  headerActions,
 }: ResourceListPageProps<TItem, TInput>) {
   useDocumentTitle(title);
   const toast = useToast();
@@ -128,9 +131,12 @@ export function ResourceListPage<TItem extends ResourceRow, TInput extends Field
         title={title}
         description={description}
         action={
-          <Button size="sm" leftIcon={<Plus className="size-4" aria-hidden />} onClick={() => setModalItem('new')}>
-            {createLabel}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {headerActions}
+            <Button size="sm" leftIcon={<Plus className="size-4" aria-hidden />} onClick={() => setModalItem('new')}>
+              {createLabel}
+            </Button>
+          </div>
         }
       />
 

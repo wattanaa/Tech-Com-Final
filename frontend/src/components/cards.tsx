@@ -4,7 +4,7 @@ import type { Activity, Course, Facility, News, Program, Project, Teacher } from
 import { MediaImage } from './ui/MediaImage';
 import { Badge } from './ui/Badge';
 import { GlassCard } from './ui/GlassCard';
-import { fullName, thaiDate, thaiNumber, PROGRAM_LEVEL_LABEL, TEACHER_TYPE_LABEL } from '@/utils/format';
+import { fullName, thaiDate, thaiNumber, PROGRAM_LEVEL_LABEL } from '@/utils/format';
 
 /** ─────────────  ข่าว  ───────────── */
 export function NewsCard({ news }: { news: News }) {
@@ -43,9 +43,12 @@ export function TeacherCard({ teacher }: { teacher: Teacher }) {
     <GlassCard padding="none" interactive className="overflow-hidden text-center">
       <div className="relative aspect-[4/5] overflow-hidden">
         <MediaImage media={teacher.photo} alt={fullName(teacher)} />
-        {teacher.type === 'HEAD' && (
-          <span className="absolute left-3 top-3 rounded-md bg-brand-500/90 px-2 py-1 text-[10px] font-semibold text-white">
-            {TEACHER_TYPE_LABEL[teacher.type]}
+        {teacher.type && (
+          <span
+            className="absolute left-3 top-3 rounded-md px-2 py-1 text-[10px] font-semibold text-white"
+            style={{ backgroundColor: `${teacher.type.color}e6` }}
+          >
+            {teacher.type.name}
           </span>
         )}
       </div>

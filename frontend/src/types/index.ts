@@ -22,7 +22,6 @@ export interface Category {
 
 export type ContentStatus = 'DRAFT' | 'REVIEW' | 'APPROVED' | 'PUBLISHED' | 'ARCHIVED';
 export type ProgramLevel = 'POR_WOR_CHOR' | 'POR_WOR_SOR';
-export type TeacherType = 'HEAD' | 'TEACHER' | 'STAFF';
 
 export interface News {
   id: string;
@@ -82,7 +81,7 @@ export interface Teacher {
   lastName: string;
   position: string;
   academicRank?: string | null;
-  type: TeacherType;
+  type?: Category | null;
   specialties: string[];
   bio?: string | null;
   email?: string | null;

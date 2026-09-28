@@ -28,16 +28,11 @@ enum ProgramLevel {
   POR_WOR_SOR
 }
 
-enum TeacherType {
-  HEAD
-  TEACHER
-  STAFF
-}
-
 enum CategoryType {
   NEWS
   ACTIVITY
   PROJECT
+  TEACHER
 }
 
 enum NavLocation {
@@ -224,7 +219,6 @@ model Teacher {
   lastName     String
   position     String
   academicRank String?
-  type         TeacherType @default(TEACHER)
   specialties  String[]
   bio          String?
   email        String?
@@ -234,6 +228,8 @@ model Teacher {
   order        Int         @default(0)
   isVisible    Boolean     @default(true)
 
+  typeId  String?
+  type    Category? @relation("TeacherCategoryType", fields: [typeId], references: [id], onDelete: SetNull)
   photoId String?
   photo   Media?  @relation("TeacherPhoto", fields: [photoId], references: [id], onDelete: SetNull)
   userId  String? @unique
@@ -248,7 +244,7 @@ model Teacher {
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
 
-  @@index([type, order])
+  @@index([typeId, order])
   @@index([deletedAt])
   @@map("teachers")
 }
@@ -368,6 +364,7 @@ model Category {
   news       News[]
   activities Activity[]
   projects   Project[]
+  teachers   Teacher[] @relation("TeacherCategoryType")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

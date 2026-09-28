@@ -147,6 +147,7 @@ export const teacherResource: ResourceConfig = {
   defaultSort: { order: 'asc' },
   publicInclude: {
     photo: mediaSelect,
+    type: categorySelect,
     courses: { select: { course: { select: { id: true, code: true, name: true } } } },
   },
   hasStatus: false,
@@ -158,7 +159,7 @@ export const teacherResource: ResourceConfig = {
   createSchema: createTeacherSchema,
   updateSchema: updateTeacherSchema,
   publicWhere: { isVisible: true },
-  extraFilters: (q) => (q.type ? { type: q.type } : undefined),
+  extraFilters: (q) => (q.type ? { typeId: q.type } : undefined),
 };
 
 export const studentResource: ResourceConfig = {

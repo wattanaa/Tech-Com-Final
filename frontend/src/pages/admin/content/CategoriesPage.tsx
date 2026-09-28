@@ -14,7 +14,7 @@ const categorySchema = z.object({
     .min(1, 'กรุณากรอก slug')
     .max(100)
     .regex(/^[a-z0-9-]+$/, 'slug ใส่ได้เฉพาะ a-z ตัวเลข และขีดกลาง'),
-  type: z.enum(['NEWS', 'ACTIVITY', 'PROJECT'], { errorMap: () => ({ message: 'กรุณาเลือกประเภท' }) }),
+  type: z.enum(['NEWS', 'ACTIVITY', 'PROJECT', 'TEACHER'], { errorMap: () => ({ message: 'กรุณาเลือกประเภท' }) }),
   color: z.string().trim().regex(/^#[0-9A-Fa-f]{6}$/, 'สีต้องอยู่ในรูปแบบ #RRGGBB'),
   order: z.coerce.number().int().min(0).max(999),
 });
@@ -24,6 +24,7 @@ const TYPE_LABEL: Record<AdminCategory['type'], string> = {
   NEWS: 'ข่าว',
   ACTIVITY: 'กิจกรรม',
   PROJECT: 'ผลงาน',
+  TEACHER: 'ประเภทครู/บุคลากร',
 };
 
 const formFields: ResourceFormField[] = [
@@ -37,6 +38,7 @@ const formFields: ResourceFormField[] = [
       { value: 'NEWS', label: 'ข่าว' },
       { value: 'ACTIVITY', label: 'กิจกรรม' },
       { value: 'PROJECT', label: 'ผลงาน' },
+      { value: 'TEACHER', label: 'ประเภทครู/บุคลากร' },
     ],
   },
   { name: 'color', label: 'สี', type: 'color' },
@@ -58,7 +60,7 @@ export function CategoriesPage() {
   return (
     <ResourceListPage<AdminCategory, CategoryInput>
       title="หมวดหมู่"
-      description="จัดการหมวดหมู่สำหรับข่าว กิจกรรม และผลงาน"
+      description="จัดการหมวดหมู่สำหรับข่าว กิจกรรม ผลงาน และประเภทครู/บุคลากร"
       createLabel="เพิ่มหมวดหมู่"
       searchPlaceholder="ค้นหาชื่อหมวดหมู่…"
       emptyMessage="ยังไม่มีหมวดหมู่"

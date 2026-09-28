@@ -3,7 +3,7 @@
  * ตรงกับ adminInclude ใน backend/src/resources/index.ts ต่าง จาก src/types/index.ts
  * ที่เป็น shape สำหรับหน้าเว็บสาธารณะเท่านั้น (ไม่มี isVisible/updatedAt ฯลฯ)
  */
-import type { Category, ContentStatus, Media, ProgramLevel, TeacherType } from './index';
+import type { Category, ContentStatus, Media, ProgramLevel } from './index';
 
 export interface AdminNews {
   id: string;
@@ -67,7 +67,7 @@ export interface AdminTeacher {
   lastName: string;
   position: string;
   academicRank?: string | null;
-  type: TeacherType;
+  type?: Category | null;
   specialties: string[];
   bio?: string | null;
   email?: string | null;
@@ -188,7 +188,7 @@ export interface AdminCategory {
   id: string;
   name: string;
   slug: string;
-  type: 'NEWS' | 'ACTIVITY' | 'PROJECT';
+  type: 'NEWS' | 'ACTIVITY' | 'PROJECT' | 'TEACHER';
   color: string;
   order: number;
   updatedAt: string;

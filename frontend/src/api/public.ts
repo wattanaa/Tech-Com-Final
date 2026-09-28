@@ -1,6 +1,6 @@
 import { apiClient, get, post } from './client';
 import type {
-  Activity, Album, Course, Facility, HomepageSection, NavigationItem,
+  Activity, Album, Category, Course, Facility, HomepageSection, NavigationItem,
   News, Paginated, Program, Project, SearchGroup, SiteSettings, Teacher,
 } from '@/types';
 
@@ -37,6 +37,7 @@ export const getNews = (p?: ListParams) => getList<News>('/news', p);
 export const getActivities = (p?: ListParams) => getList<Activity>('/activities', p);
 export const getProjects = (p?: ListParams) => getList<Project>('/projects', p);
 export const getTeachers = (p?: ListParams) => getList<Teacher>('/teachers', { limit: 100, ...p });
+export const getCategories = (p?: ListParams) => getList<Category>('/categories', { limit: 100, ...p });
 export const getPrograms = (p?: ListParams) => getList<Program>('/programs', { limit: 100, ...p });
 export const getCourses = (p?: ListParams) => getList<Course>('/courses', p);
 export const getFacilities = (p?: ListParams) => getList<Facility>('/facilities', { limit: 100, ...p });

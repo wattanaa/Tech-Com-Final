@@ -19,6 +19,12 @@ export const listQuerySchema = z.object({
   sortBy: z.string().optional(),
   sortOrder: z.enum(['asc', 'desc']).default('desc').optional(),
   sort: z.string().optional(),
+  // ฟิลด์กรองที่ resource.service.ts#buildWhere และ extraFilters ของแต่ละ entity ใช้ —
+  // ต้องประกาศไว้ในนี้ด้วย ไม่งั้น Zod จะ strip ทิ้งก่อนถึง controller เสมอ (ค่ากรองเงียบ ๆ ไม่มีผล)
+  type: z.string().optional(),
+  categoryId: z.string().optional(),
+  programId: z.string().optional(),
+  year: z.coerce.number().int().optional(),
 });
 
 export const getSkip = (page: number | string = 1, limit: number | string = 10): number => {

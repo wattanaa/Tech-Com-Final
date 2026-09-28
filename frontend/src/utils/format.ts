@@ -38,9 +38,3 @@ export const PROGRAM_LEVEL_LABEL: Record<string, string> = {
   POR_WOR_CHOR: 'ปวช.',
   POR_WOR_SOR: 'ปวส.',
 };
-
-export const TEACHER_TYPE_LABEL: Record<string, string> = {
-  HEAD: 'หัวหน้าแผนก',
-  TEACHER: 'ครูผู้สอน',
-  STAFF: 'บุคลากร',
-};

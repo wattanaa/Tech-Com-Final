@@ -17,7 +17,6 @@ import {
   CategoryType,
   ContentStatus,
   ProgramLevel,
-  TeacherType,
 } from '@prisma/client';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR ?? './uploads';
@@ -129,6 +128,9 @@ export async function seedDemoData(prisma: PrismaClient, authorId: string) {
     { name: 'ระบบสมองกลฝังตัว', slug: 'embedded', type: CategoryType.PROJECT, color: '#007AFF', order: 1 },
     { name: 'เครือข่ายและระบบ', slug: 'network', type: CategoryType.PROJECT, color: '#1FB6E0', order: 2 },
     { name: 'เว็บและแอปพลิเคชัน', slug: 'web-app', type: CategoryType.PROJECT, color: '#4C6FFF', order: 3 },
+    { name: 'หัวหน้าแผนก', slug: 'head', type: CategoryType.TEACHER, color: '#0A84FF', order: 1 },
+    { name: 'ครูผู้สอน', slug: 'teacher', type: CategoryType.TEACHER, color: '#0057B8', order: 2 },
+    { name: 'เจ้าหน้าที่', slug: 'staff', type: CategoryType.TEACHER, color: '#0E9C63', order: 3 },
   ];
   for (const c of categoryData) {
     await prisma.category.upsert({
@@ -199,7 +201,7 @@ export async function seedDemoData(prisma: PrismaClient, authorId: string) {
       lastName: 'ธนกิจไพศาล',
       position: 'หัวหน้าแผนกวิชาเทคโนโลยีคอมพิวเตอร์',
       academicRank: 'ครูชำนาญการพิเศษ',
-      type: TeacherType.HEAD,
+      typeId: cat('head', CategoryType.TEACHER),
       specialties: ['ระบบเครือข่ายคอมพิวเตอร์', 'ความมั่นคงปลอดภัยไซเบอร์', 'ระบบปฏิบัติการเซิร์ฟเวอร์'],
       bio: 'ประสบการณ์สอนด้านระบบเครือข่ายกว่า 18 ปี เป็นผู้ควบคุมทีมนักศึกษาเข้าแข่งขันทักษะวิชาชีพระดับชาติอย่างต่อเนื่อง',
     },
@@ -209,7 +211,7 @@ export async function seedDemoData(prisma: PrismaClient, authorId: string) {
       lastName: 'บุญเรืองฤทธิ์',
       position: 'ครูผู้สอน',
       academicRank: 'ครูชำนาญการ',
-      type: TeacherType.TEACHER,
+      typeId: cat('teacher', CategoryType.TEACHER),
       specialties: ['การพัฒนาเว็บแอปพลิเคชัน', 'ฐานข้อมูล', 'การออกแบบส่วนติดต่อผู้ใช้'],
       bio: 'สอนรายวิชาการเขียนโปรแกรมบนเว็บและระบบฐานข้อมูล สนใจงานด้านประสบการณ์ผู้ใช้และการออกแบบระบบสารสนเทศ',
     },
@@ -219,7 +221,7 @@ export async function seedDemoData(prisma: PrismaClient, authorId: string) {
       lastName: 'สินธุ์เจริญ',
       position: 'ครูผู้สอน',
       academicRank: 'ครูชำนาญการ',
-      type: TeacherType.TEACHER,
+      typeId: cat('teacher', CategoryType.TEACHER),
       specialties: ['ระบบสมองกลฝังตัว', 'IoT', 'ไมโครคอนโทรลเลอร์'],
       bio: 'ที่ปรึกษาโครงงานด้านระบบสมองกลฝังตัวและ IoT ผลงานนักศึกษาได้รับรางวัลระดับภาคหลายรายการ',
     },
@@ -229,7 +231,7 @@ export async function seedDemoData(prisma: PrismaClient, authorId: string) {
       lastName: 'วัฒนคีรี',
       position: 'ครูผู้สอน',
       academicRank: 'ครู',
-      type: TeacherType.TEACHER,
+      typeId: cat('teacher', CategoryType.TEACHER),
       specialties: ['การซ่อมบำรุงคอมพิวเตอร์', 'ฮาร์ดแวร์', 'มัลติมีเดีย'],
       bio: 'ดูแลรายวิชาปฏิบัติด้านฮาร์ดแวร์และงานมัลติมีเดีย ควบคุมการฝึกประสบการณ์วิชาชีพของนักศึกษา',
     },
@@ -239,7 +241,7 @@ export async function seedDemoData(prisma: PrismaClient, authorId: string) {
       lastName: 'ศรีสุนทรพงศ์',
       position: 'เจ้าหน้าที่ธุรการแผนกวิชา',
       academicRank: null,
-      type: TeacherType.STAFF,
+      typeId: cat('staff', CategoryType.TEACHER),
       specialties: ['งานธุรการ', 'งานทะเบียนนักศึกษา', 'งานประชาสัมพันธ์'],
       bio: 'ดูแลงานเอกสาร งานทะเบียน และการประชาสัมพันธ์ข่าวสารของแผนกวิชา',
     },
